@@ -8,6 +8,9 @@
     /** The canvas drawing context. */
     let ctx: CanvasRenderingContext2D;
 
+    /** The canvas offset to account for video controls, in pixels. */
+    const canvasOffset = 44;
+
     /** The user's selection data. */
     let selection: CanvasSelection = {
         x: 0,
@@ -44,8 +47,10 @@
 
         // calculate the width and height of the selection
         const rect = canvas.getBoundingClientRect();
-        const width = e.clientX - selection.x - rect.left;
-        const height = e.clientY - selection.y - rect.top;
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+        const width = currentX - selection.x;
+        const height = currentY - selection.y;
 
         // update the selection object and draw the selection
         selection = { ...selection, width, height };
@@ -69,8 +74,10 @@
 
         // calculate the width and height of the selection
         const rect = canvas.getBoundingClientRect();
-        const width = e.clientX - selection.x - rect.left;
-        const height = e.clientY - selection.y - rect.top;
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+        const width = currentX - selection.x;
+        const height = currentY - selection.y;
 
         // update the selection object and clears the canvas
         const isSelecting = false;
@@ -98,18 +105,90 @@
     /**
      * Captures a frame from the current playing video and outputs a blob object.
      */
-    function captureFrame() {
-        // create canvas for drawing image
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+    function captureSelection() {
+        // ensure a selection has been made
+        if (!selection.isSelected) return null;
 
-        // create canvas context and draw image from video
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0);
+        // create canvas for drawing image
+        const captureCanvas = document.createElement("canvas");
+
+        // get coordinates for selection (account for direction of selection)
+        const selStartX = Math.min(selection.x, selection.x + selection.width);
+        const selStartY = Math.min(selection.y, selection.y + selection.height);
+        const selWidth = Math.abs(selection.width);
+        const selHeight = Math.abs(selection.height);
+
+        // set canvas to the selection size
+        captureCanvas.width = selWidth;
+        captureCanvas.height = selHeight;
+
+        // create context for the capture canvas
+        const captureCtx = captureCanvas.getContext("2d");
+        if (!captureCtx) {
+            console.error("Could not get canvas context");
+            return null;
+        }
+
+        // calculate dimensions of video height
+        const videoRect = video.getBoundingClientRect();
+        const visibleVideoHeight = videoRect.height;
+
+        // calculate the actual display dimensions of the video (accounting for object-contain)
+        const videoRatio = video.videoWidth / video.videoHeight;
+        const containerRatio = videoRect.width / visibleVideoHeight;
+
+        // calculate acutal displayed width and height
+        let displayedWidth: number, displayedHeight: number;
+        if (videoRatio > containerRatio) {
+            displayedWidth = videoRect.width;
+            displayedHeight = displayedWidth / videoRatio;
+        } else {
+            displayedHeight = visibleVideoHeight;
+            displayedWidth = displayedHeight * videoRatio;
+        }
+
+        // calculate the position of the video within its container (centering)
+        const videoX = (videoRect.width - displayedWidth) / 2;
+        const videoY = (visibleVideoHeight - displayedHeight) / 2;
+
+        // calculate scale factors between displayed video and actual video dimensions
+        const scaleX = video.videoWidth / displayedWidth;
+        const scaleY = video.videoHeight / displayedHeight;
+
+        // adjust selection coordinates to be relative to the actual video content
+        const adjustedX = selStartX - videoX;
+        const adjustedY = selStartY - videoY;
+
+        // scale to get the actual position in the source video
+        const sourceX = adjustedX * scaleX;
+        const sourceY = adjustedY * scaleY;
+        const sourceWidth = selWidth * scaleX;
+        const sourceHeight = selHeight * scaleY;
+
+        // ensure coordinates are within video bounds
+        const clampedX = Math.max(0, sourceX);
+        const clampedY = Math.max(0, sourceY);
+        const clampedWidth = Math.min(sourceWidth, video.videoWidth - clampedX);
+        const clampedHeight = Math.min(
+            sourceHeight,
+            video.videoHeight - clampedY,
+        );
+
+        // draw the selected portion of the video onto the canvas
+        captureCtx.drawImage(
+            video,
+            clampedX,
+            clampedY,
+            clampedWidth,
+            clampedHeight,
+            0,
+            0,
+            selWidth,
+            selHeight,
+        );
 
         // convert to blob and return
-        const blob = dataURLToBlob(canvas.toDataURL("image/png"));
+        const blob = dataURLToBlob(captureCanvas.toDataURL("image/png"));
         // console.log(URL.createObjectURL(blob));
         return blob;
     }
@@ -184,7 +263,7 @@
             />
             <button
                 class="m-2 p-2 outline outline-black hover:bg-black hover:text-white"
-                on:click={captureFrame}
+                on:click={captureSelection}
             >
                 Capture
             </button>
@@ -201,12 +280,16 @@
                 <track kind="captions" src="" label="Chinese" default />
             </video>
             <canvas
-                class="absolute top-0 left-0 w-full h-full pointer-events-auto cursor-crosshair"
+                class="absolute top-0 left-0 w-full h-full pointer-events-none"
                 bind:this={canvas}
+            ></canvas>
+            <button
+                class="absolute top-0 left-0 w-full h-[calc(100%-{canvasOffset}px)] cursor-crosshair"
                 on:mousedown={selectionStart}
                 on:mousemove={selectionMove}
                 on:mouseup={selectionEnd}
-            ></canvas>
+                ><span class="invisible">Selection Area</span></button
+            >
         </div>
         <div>4</div>
     </div>
