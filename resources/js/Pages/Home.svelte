@@ -2,6 +2,85 @@
     import { onMount } from "svelte";
     import type { CanvasSelection } from "../types";
 
+    /** API key for OCR purposes. */
+    export let key: string;
+
+    /** Text extracted from the image using OCR. */
+    let ocrText = "";
+
+    /**
+     * Runs OCR on image by passing it to a vision-based model.
+     * @param img The image to run OCR on.
+     */
+    async function ocr(img: Blob) {
+        try {
+            // convert image blob to base64
+            const base64Img = await blobToBase64(img);
+
+            // prepare the API request to OpenRouter
+            const response = await fetch(
+                "https://openrouter.ai/api/v1/chat/completions",
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${key}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        model: "google/gemini-2.0-flash-lite-preview-02-05:free",
+                        messages: [
+                            {
+                                role: "user",
+                                content: [
+                                    {
+                                        type: "text",
+                                        text: "Extract all Chinese text visible in this image. Return only the extracted text, no additional comments. If there is no text, return 'NO_TEXT_FOUND'.",
+                                    },
+                                    {
+                                        type: "image_url",
+                                        image_url: {
+                                            url: base64Img,
+                                            detail: "high",
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    }),
+                },
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(
+                    `OpenRouter API error: ${errorData.error?.message || response.statusText}`,
+                );
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch (error) {
+            console.error("Error sending image to OpenRouter:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Function to convert a blob to base64 data.
+     * @param blob The blob to convert.
+     */
+    function blobToBase64(blob: Blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result;
+                resolve(base64String);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
     /** Bound to the canvas element that the user draws on. */
     let canvas: HTMLCanvasElement;
 
@@ -105,7 +184,7 @@
     /**
      * Captures a frame from the current playing video and outputs a blob object.
      */
-    function captureSelection() {
+    async function captureSelection() {
         // ensure a selection has been made
         if (!selection.isSelected) return null;
 
@@ -187,10 +266,13 @@
             selHeight,
         );
 
-        // convert to blob and return
+        // pause the video here
+        video.pause();
+
+        // convert to blob and pass to ocr
         const blob = dataURLToBlob(captureCanvas.toDataURL("image/png"));
+        ocrText = await ocr(blob);
         // console.log(URL.createObjectURL(blob));
-        return blob;
     }
 
     /**
@@ -284,13 +366,16 @@
                 bind:this={canvas}
             ></canvas>
             <button
-                class="absolute top-0 left-0 w-full h-[calc(100%-{canvasOffset}px)] cursor-crosshair"
+                class="absolute top-0 left-0 w-full cursor-crosshair"
+                style="height: calc(100% - {canvasOffset}px);"
                 on:mousedown={selectionStart}
                 on:mousemove={selectionMove}
                 on:mouseup={selectionEnd}
                 ><span class="invisible">Selection Area</span></button
             >
         </div>
-        <div>4</div>
+        <div>
+            <p class="p-5">{ocrText}</p>
+        </div>
     </div>
 </div>
