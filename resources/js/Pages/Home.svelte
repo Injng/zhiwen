@@ -3,10 +3,10 @@
     import type { CanvasSelection } from "../types";
 
     /** API key for OCR purposes. */
-    export let key: string;
+    let { key } = $props();
 
     /** Text extracted from the image using OCR. */
-    let ocrText = "";
+    let ocrText = $state("");
 
     /**
      * Runs OCR on image by passing it to a vision-based model.
@@ -341,11 +341,11 @@
             <input
                 class="m-2 p-2 outline outline-black hover:bg-black hover:text-white"
                 type="file"
-                on:change={loadVideo}
+                onchange={loadVideo}
             />
             <button
                 class="m-2 p-2 outline outline-black hover:bg-black hover:text-white"
-                on:click={captureSelection}
+                onclick={captureSelection}
             >
                 Capture
             </button>
@@ -357,7 +357,7 @@
                 class="w-full h-full object-contain"
                 controls
                 bind:this={video}
-                on:loadedmetadata={resizeCanvas}
+                onloadedmetadata={resizeCanvas}
             >
                 <track kind="captions" src="" label="Chinese" default />
             </video>
@@ -368,9 +368,9 @@
             <button
                 class="absolute top-0 left-0 w-full cursor-crosshair"
                 style="height: calc(100% - {canvasOffset}px);"
-                on:mousedown={selectionStart}
-                on:mousemove={selectionMove}
-                on:mouseup={selectionEnd}
+                onmousedown={selectionStart}
+                onmousemove={selectionMove}
+                onmouseup={selectionEnd}
                 ><span class="invisible">Selection Area</span></button
             >
         </div>
