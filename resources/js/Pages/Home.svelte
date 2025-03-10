@@ -480,7 +480,7 @@
             >
         </div>
         <div bind:this={transcription}>
-            <p class="p-5">你好</p>
+            <p class="p-5">{ocrText}</p>
         </div>
     </div>
 
