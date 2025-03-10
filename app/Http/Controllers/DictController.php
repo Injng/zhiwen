@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Definition;
 use App\Models\Entry;
+use App\Models\Example;
 use Illuminate\Http\JsonResponse;
 
 class DictController extends Controller
@@ -26,7 +27,7 @@ class DictController extends Controller
      */
     public function getDefinitions(int $entryId): JsonResponse
     {
-        $definitions = Entry::find($entryId)->definitions;
+        $definitions = Definition::where('entry_id', $entryId)->get();
         return response()->json($definitions);
     }
 
@@ -37,7 +38,7 @@ class DictController extends Controller
      */
     public function getExamples(int $definitionId): JsonResponse
     {
-        $examples = Definition::find($definitionId)->examples;
+        $examples = Example::where('definition_id', $definitionId)->get();
         return response()->json($examples);
     }
 }
