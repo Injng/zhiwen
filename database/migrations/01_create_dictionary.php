@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('word');
             $table->string('pinyin');
-            $table->timestamps();
         });
 
         Schema::create('definitions', function (Blueprint $table) {
@@ -23,14 +22,12 @@ return new class extends Migration
             $table->foreignId('entry_id')->constrained()->onDelete('cascade');
             $table->string('part');
             $table->text('definition');
-            $table->timestamps();
         });
 
         Schema::create('examples', function (Blueprint $table) {
             $table->id();
             $table->foreignId('definition_id')->constrained()->onDelete('cascade');
             $table->text('sentence');
-            $table->timestamps();
         });
     }
 
