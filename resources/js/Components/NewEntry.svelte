@@ -3,7 +3,12 @@
     import axios from "axios";
     import {onMount} from "svelte";
 
-    let {entries, onUpdate, onClose}: { entries: Entry[], onUpdate: () => void, onClose: () => void } = $props();
+    let {entries, selectedText, onUpdate, onClose}: {
+        entries: Entry[],
+        selectedText: string,
+        onUpdate: () => void,
+        onClose: () => void
+    } = $props();
 
     /** Values to submit a new example. */
     let exampleValues = {
@@ -20,7 +25,7 @@
 
     /** Values to submit a new entry. */
     let entryValues = {
-        word: "",
+        word: selectedText,
         pinyin: "",
     }
 

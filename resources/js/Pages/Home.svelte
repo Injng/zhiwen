@@ -485,6 +485,6 @@
     </div>
 
     {#if showNewEntry}
-        <NewEntry {entries} onUpdate={getEntries} onClose={toggleNew} />
+        <NewEntry {entries} {selectedText} onUpdate={getEntries} onClose={toggleNew} />
     {/if}
 </div>
