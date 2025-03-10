@@ -2,9 +2,18 @@
     import {onMount} from "svelte";
     import type {CanvasSelection, Definition, Entry, Example} from "../types";
     import EntryCard from "../Components/EntryCard.svelte";
+    import NewEntry from "../Components/NewEntry.svelte";
 
     /** API key for OCR purposes. */
     let { key } = $props();
+
+    /** State for showing the new entry dialog. */
+    let showNewEntry = $state(false);
+
+    /** Toggles the new entry dialog between open and close. */
+    function toggleNew() {
+        showNewEntry = !showNewEntry;
+    }
 
     /** Bound to the div element that contains the transcribed element. */
     let transcription: HTMLDivElement;
@@ -416,7 +425,7 @@
 
 <div class="grid grid-cols-[1fr_3fr] h-screen">
     <div class="grid grid-rows-[3fr_1fr]">
-        <div>
+        <div class="overflow-y-auto h-[75vh]">
             {#each entries as entry (entry.id)}
                 <EntryCard {entry} />
             {/each}
@@ -438,6 +447,12 @@
                 onclick={getEntries}
             >
                 Dictionary
+            </button>
+            <button
+                class="m-2 p-2 outline outline-black hover:bg-black hover:text-white"
+                onclick={toggleNew}
+            >
+                New Entry
             </button>
         </div>
     </div>
@@ -468,4 +483,8 @@
             <p class="p-5">你好</p>
         </div>
     </div>
+
+    {#if showNewEntry}
+        <NewEntry {entries} onUpdate={getEntries} onClose={toggleNew} />
+    {/if}
 </div>
