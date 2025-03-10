@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import type { CanvasSelection } from "../types";
+    import {onMount} from "svelte";
+    import type {CanvasSelection, Definition, Entry, Example} from "../types";
+    import EntryCard from "../Components/EntryCard.svelte";
 
     /** API key for OCR purposes. */
     let { key } = $props();
@@ -10,6 +11,57 @@
 
     /** Text that the user has currently selected within the transcription element. */
     let selectedText = $state("");
+
+    /** Current entries to display in the dictionary. */
+    let entries: Entry[] = $state([]);
+
+    $effect(() => {
+        $inspect(entries);
+    });
+
+    /**
+     * For each entry in entries, get the definitions and examples and update the entry object.
+     */
+    async function getDefinitions() {
+        // iterate through each entry
+        for (let entry of entries) {
+            // fetch definitions
+            const response = await fetch(`/definitions/${entry.id}`);
+            if (!response.ok) continue;
+
+            // update entry with definitions
+            entry.definitions = await response.json() as Definition[];
+            if (!entry.definitions || entry.definitions.length === 0) continue;
+
+            // get examples for each definition
+            for (let definition of entry.definitions) {
+                // fetch examples
+                const response = await fetch(`/examples/${definition.id}`);
+                if (!response.ok) continue;
+
+                // update definition with examples
+                definition.examples = await response.json() as Example[];
+            }
+        }
+    }
+
+    /**
+     * Fetches dictionary entries for the selected text and updates the entries state.
+     */
+    async function getEntries() {
+        // attempt to obtain the dictionary entry for the selected text
+        const response = await fetch(`/entry/${selectedText}`);
+        if (!response.ok) return;
+
+        // obtain entries and update state
+        const data = await response.json() as Entry[];
+        entries = data.map((entry) => ({
+            ...entry,
+            definitions: []
+        }));
+
+        await getDefinitions();
+    }
 
     /**
      * Handles user selection of text and updates only if the selection is of the transcribed text.
@@ -25,8 +77,7 @@
         if (!transcription.contains(container)) return;
 
         // update selected text
-        const text = range.toString();
-        selectedText = text;
+        selectedText = range.toString();
     }
 
     /** Text extracted from the image using OCR. */
@@ -73,13 +124,6 @@
                     }),
                 },
             );
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(
-                    `OpenRouter API error: ${errorData.error?.message || response.statusText}`,
-                );
-            }
 
             const data = await response.json();
             return data.choices[0].message.content;
@@ -202,7 +246,7 @@
         }
     }
 
-    /** Bound to the current vidoe element on the screen. */
+    /** Bound to the current video element on the screen. */
     let video: HTMLVideoElement;
 
     /**
@@ -240,7 +284,7 @@
         const videoRatio = video.videoWidth / video.videoHeight;
         const containerRatio = videoRect.width / visibleVideoHeight;
 
-        // calculate acutal displayed width and height
+        // calculate actual displayed width and height
         let displayedWidth: number, displayedHeight: number;
         if (videoRatio > containerRatio) {
             displayedWidth = videoRect.width;
@@ -372,7 +416,11 @@
 
 <div class="grid grid-cols-[1fr_3fr] h-screen">
     <div class="grid grid-rows-[3fr_1fr]">
-        <div>{selectedText}</div>
+        <div>
+            {#each entries as entry (entry.id)}
+                <EntryCard {entry} />
+            {/each}
+        </div>
         <div>
             <input
                 class="m-2 p-2 outline outline-black hover:bg-black hover:text-white"
@@ -384,6 +432,12 @@
                 onclick={captureSelection}
             >
                 Capture
+            </button>
+            <button
+                class="m-2 p-2 outline outline-black hover:bg-black hover:text-white"
+                onclick={getEntries}
+            >
+                Dictionary
             </button>
         </div>
     </div>
@@ -411,7 +465,7 @@
             >
         </div>
         <div bind:this={transcription}>
-            <p class="p-5">Testing</p>
+            <p class="p-5">你好</p>
         </div>
     </div>
 </div>
