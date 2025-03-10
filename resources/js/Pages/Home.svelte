@@ -5,6 +5,30 @@
     /** API key for OCR purposes. */
     let { key } = $props();
 
+    /** Bound to the div element that contains the transcribed element. */
+    let transcription: HTMLDivElement;
+
+    /** Text that the user has currently selected within the transcription element. */
+    let selectedText = $state("");
+
+    /**
+     * Handles user selection of text and updates only if the selection is of the transcribed text.
+     */
+    function handleSelectionChange() {
+        // get selection and check if it exists
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return;
+
+        // ensure that selection is within the transcription element
+        const range = selection.getRangeAt(0);
+        const container = range.commonAncestorContainer;
+        if (!transcription.contains(container)) return;
+
+        // update selected text
+        const text = range.toString();
+        selectedText = text;
+    }
+
     /** Text extracted from the image using OCR. */
     let ocrText = $state("");
 
@@ -331,12 +355,24 @@
         ctx = canvas.getContext("2d");
         resizeCanvas();
         window.addEventListener("resize", resizeCanvas);
+
+        // add event listener to track text selection
+        document.addEventListener("selectionchange", handleSelectionChange);
+
+        // cleanup
+        return () => {
+            document.removeEventListener(
+                "selectionchange",
+                handleSelectionChange,
+            );
+            window.removeEventListener("resize", resizeCanvas);
+        };
     });
 </script>
 
 <div class="grid grid-cols-[1fr_3fr] h-screen">
     <div class="grid grid-rows-[3fr_1fr]">
-        <div>1</div>
+        <div>{selectedText}</div>
         <div>
             <input
                 class="m-2 p-2 outline outline-black hover:bg-black hover:text-white"
@@ -374,8 +410,8 @@
                 ><span class="invisible">Selection Area</span></button
             >
         </div>
-        <div>
-            <p class="p-5">{ocrText}</p>
+        <div bind:this={transcription}>
+            <p class="p-5">Testing</p>
         </div>
     </div>
 </div>
