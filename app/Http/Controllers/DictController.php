@@ -6,6 +6,7 @@ use App\Models\Definition;
 use App\Models\Entry;
 use App\Models\Example;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class DictController extends Controller
 {
@@ -40,5 +41,65 @@ class DictController extends Controller
     {
         $examples = Example::where('definition_id', $definitionId)->get();
         return response()->json($examples);
+    }
+
+    /**
+     * Adds a new example to the database.
+     * @param Request $request The request object containing a new example.
+     * @return JsonResponse
+     */
+    public function addExample(Request $request): JsonResponse
+    {
+        // validate the request
+        $validated = $request->validate([
+            'definition_id' => 'required|integer',
+            'sentence' => 'required|string',
+        ]);
+
+        // insert the example into the database
+        $example = new Example();
+        $example->definition_id = $validated['definition_id'];
+        $example->sentence = $validated['sentence'];
+        $example->save();
+        return response()->json($example);
+    }
+
+    /**
+     * Adds a new definition to the database.
+     * @param Request $request The request object containing a new definition.
+     * @return JsonResponse
+     */
+    public function addDefinition(Request $request): JsonResponse
+    {
+        // validate the request
+        $validated = $request->validate([
+            'entry_id' => 'required|integer',
+            'part' => 'required|string',
+            'definition' => 'required|string',
+        ]);
+
+        // insert the definition into the database
+        $definition = new Definition();
+        $definition->entry_id = $validated['entry_id'];
+        $definition->part = $validated['part'];
+        $definition->definition = $validated['definition'];
+        $definition->save();
+        return response()->json($definition);
+    }
+
+    public function addEntry(Request $request): JsonResponse
+    {
+        // validate the request
+        $validated = $request->validate([
+            'word' => 'required|string',
+            'pinyin' => 'required|string',
+        ]);
+
+        // insert the entry into the database
+        $entry = new Entry();
+        $entry->word = $validated['word'];
+        $entry->pinyin = $validated['pinyin'];
+        $entry->save();
+        return response()->json($entry);
     }
 }
