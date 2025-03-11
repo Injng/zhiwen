@@ -87,8 +87,19 @@ class SrsController extends Controller
         $card->reps = $validated['reps'];
         $card->lapses = $validated['lapses'];
         $card->state = $validated['state'];
-        $card->last_review = $validated['last_review'];
+        $card->last_review = $validated['last_review'] ?? null;
         $card->save();
+        return response()->json($card);
+    }
+
+    /**
+     * Finds a card by its corresponding entry ID.
+     * @param int $entryId The ID of the entry to find.
+     * @return JsonResponse
+     */
+    public function findCardByEntry(int $entryId): JsonResponse
+    {
+        $card = Card::where('entry_id', $entryId)->first();
         return response()->json($card);
     }
 }
