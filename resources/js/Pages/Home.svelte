@@ -3,9 +3,16 @@
     import type {CanvasSelection, Definition, Entry, Example} from "../types";
     import EntryCard from "../Components/EntryCard.svelte";
     import NewEntry from "../Components/NewEntry.svelte";
+    import ReviewCards from "../Components/ReviewCards.svelte";
 
     /** API key for OCR purposes. */
-    let { key } = $props();
+    let {key} = $props();
+
+    /**
+     * State for keeping track of which page the user is on.
+     * 1: Home, 2: Review
+     */
+    let pageState = $state(1);
 
     /** State for showing the new entry dialog. */
     let showNewEntry = $state(false);
@@ -23,10 +30,6 @@
 
     /** Current entries to display in the dictionary. */
     let entries: Entry[] = $state([]);
-
-    $effect(() => {
-        $inspect(entries);
-    });
 
     /**
      * For each entry in entries, get the definitions and examples and update the entry object.
@@ -59,7 +62,7 @@
      */
     async function getEntries() {
         // attempt to obtain the dictionary entry for the selected text
-        const response = await fetch(`/entry/${selectedText}`);
+        const response = await fetch(`/entries/${selectedText}`);
         if (!response.ok) return;
 
         // obtain entries and update state
@@ -79,6 +82,7 @@
         // get selection and check if it exists
         const selection = window.getSelection();
         if (!selection || selection.rangeCount === 0) return;
+        if (!transcription) return;
 
         // ensure that selection is within the transcription element
         const range = selection.getRangeAt(0);
@@ -209,7 +213,7 @@
         const height = currentY - selection.y;
 
         // update the selection object and draw the selection
-        selection = { ...selection, width, height };
+        selection = {...selection, width, height};
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = "red";
         ctx.strokeRect(
@@ -238,7 +242,7 @@
         // update the selection object and clears the canvas
         const isSelecting = false;
         const isSelected = true;
-        selection = { ...selection, width, height, isSelecting, isSelected };
+        selection = {...selection, width, height, isSelecting, isSelected};
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
@@ -349,7 +353,6 @@
         // convert to blob and pass to ocr
         const blob = dataURLToBlob(captureCanvas.toDataURL("image/png"));
         ocrText = await ocr(blob);
-        // console.log(URL.createObjectURL(blob));
     }
 
     /**
@@ -365,7 +368,7 @@
         while (n--) {
             u8arr[n] = bstr.charCodeAt(n);
         }
-        return new Blob([u8arr], { type: mime });
+        return new Blob([u8arr], {type: mime});
     }
 
     /**
@@ -396,7 +399,7 @@
         // set video source
         reader.onload = (e) => {
             let buffer = e.target?.result as ArrayBuffer;
-            let blob = new Blob([buffer], { type: file.type });
+            let blob = new Blob([buffer], {type: file.type});
             let url = URL.createObjectURL(blob);
             let video = document.querySelector("video") as HTMLVideoElement;
             video.src = url;
@@ -423,68 +426,143 @@
     });
 </script>
 
-<div class="grid grid-cols-[1fr_3fr] h-screen">
-    <div class="grid grid-rows-[3fr_1fr]">
-        <div class="overflow-y-auto h-[75vh]">
-            {#each entries as entry (entry.id)}
-                <EntryCard {entry} />
-            {/each}
-        </div>
-        <div>
-            <input
-                class="m-2 p-2 outline outline-black hover:bg-black hover:text-white"
-                type="file"
-                onchange={loadVideo}
-            />
-            <button
-                class="m-2 p-2 outline outline-black hover:bg-black hover:text-white"
-                onclick={captureSelection}
-            >
-                Capture
-            </button>
-            <button
-                class="m-2 p-2 outline outline-black hover:bg-black hover:text-white"
-                onclick={getEntries}
-            >
-                Dictionary
-            </button>
-            <button
-                class="m-2 p-2 outline outline-black hover:bg-black hover:text-white"
-                onclick={toggleNew}
-            >
-                New Entry
-            </button>
-        </div>
-    </div>
-    <div class="grid grid-rows-[3fr_1fr]">
-        <div class="relative">
-            <video
-                class="w-full h-full object-contain"
-                controls
-                bind:this={video}
-                onloadedmetadata={resizeCanvas}
-            >
-                <track kind="captions" src="" label="Chinese" default />
-            </video>
-            <canvas
-                class="absolute top-0 left-0 w-full h-full pointer-events-none"
-                bind:this={canvas}
-            ></canvas>
-            <button
-                class="absolute top-0 left-0 w-full cursor-crosshair"
-                style="height: calc(100% - {canvasOffset}px);"
-                onmousedown={selectionStart}
-                onmousemove={selectionMove}
-                onmouseup={selectionEnd}
-                ><span class="invisible">Selection Area</span></button
-            >
-        </div>
-        <div bind:this={transcription}>
-            <p class="p-5">{ocrText}</p>
-        </div>
-    </div>
+<div class="min-h-screen bg-gray-50">
+    {#if pageState === 1}
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_3fr] h-screen">
+            <div class="flex flex-col border-r border-gray-200 bg-white shadow-sm">
+                <!-- Dictionary Entries Section -->
+                <div class="flex-grow overflow-y-auto p-2">
+                    <h2 class="text-xl font-bold text-gray-800 px-2 py-3 mb-2 border-b border-gray-200">Dictionary</h2>
+                    {#if entries.length > 0}
+                        <div class="space-y-3">
+                            {#each entries as entry (entry.id)}
+                                <EntryCard {entry}/>
+                            {/each}
+                        </div>
+                    {:else}
+                        <p class="text-gray-500 text-center py-6">No entries found. Select text or add new entries.</p>
+                    {/if}
+                </div>
 
-    {#if showNewEntry}
-        <NewEntry {entries} {selectedText} onUpdate={getEntries} onClose={toggleNew} />
+                <!-- Controls Section -->
+                <div class="p-3 bg-gray-50 border-t border-gray-200">
+                    <div class="mb-3">
+                        <label for="video-upload" class="block text-sm font-medium text-gray-700 mb-1">Video Upload</label>
+                        <div class="flex items-center">
+                            <label class="cursor-pointer flex-grow">
+                                <span class="py-2 px-3 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 inline-flex items-center w-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                    Select Video File
+                                </span>
+                                <input
+                                    id="video-upload"
+                                    type="file"
+                                    class="hidden"
+                                    accept="video/*"
+                                    onchange={loadVideo}
+                                />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button
+                            class="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            onclick={captureSelection}
+                        >
+                            Capture
+                        </button>
+                        <button
+                            class="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            onclick={getEntries}
+                        >
+                            Dictionary
+                        </button>
+                        <button
+                            class="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                            onclick={toggleNew}
+                        >
+                            New Entry
+                        </button>
+                        <button
+                            class="px-4 py-2 bg-gray-700 text-white font-medium rounded-md hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                            onclick={() => pageState = 2}
+                        >
+                            Review
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col">
+                <!-- Video Player Section -->
+                <div class="relative flex-grow bg-black">
+                    <video
+                        class="w-full h-full object-contain"
+                        controls
+                        bind:this={video}
+                        onloadedmetadata={resizeCanvas}
+                    >
+                        <track kind="captions" src="" label="Chinese" default/>
+                    </video>
+                    <canvas
+                        class="absolute top-0 left-0 w-full h-full pointer-events-none"
+                        bind:this={canvas}
+                    ></canvas>
+                    <button
+                        class="absolute top-0 left-0 w-full cursor-crosshair"
+                        style="height: calc(100% - {canvasOffset}px);"
+                        onmousedown={selectionStart}
+                        onmousemove={selectionMove}
+                        onmouseup={selectionEnd}
+                    ><span class="sr-only">Selection Area</span></button>
+
+                    <!-- Selection info indicator -->
+                    {#if selection.isSelected}
+                        <div class="absolute top-2 right-2 bg-black/70 text-white px-3 py-1 rounded-md text-sm">
+                            Selection active
+                        </div>
+                    {/if}
+                </div>
+
+                <!-- Transcription Section -->
+                <div class="h-44 bg-white border-t border-gray-300 overflow-y-auto">
+                    <div class="p-4 h-full" bind:this={transcription}>
+                        {#if ocrText}
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">OCR Result:</h3>
+                            <p class="text-lg text-gray-800 select-all">{ocrText}</p>
+                        {:else}
+                            <p class="text-gray-400 h-full flex items-center justify-center">
+                                Capture a section of the video to extract text 你
+                            </p>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+
+            {#if showNewEntry}
+                <NewEntry {entries} {selectedText} onUpdate={getEntries} onClose={toggleNew}/>
+            {/if}
+        </div>
+    {:else if pageState === 2}
+        <div class="p-6 max-w-3xl mx-auto">
+            <div class="mb-4 flex items-center">
+                <button
+                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md mr-3 flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                    onclick={() => pageState = 1}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back
+                </button>
+                <h1 class="text-2xl font-bold text-gray-800">Review Cards</h1>
+            </div>
+            <div class="bg-white shadow-md rounded-lg p-6">
+                <ReviewCards />
+            </div>
+        </div>
     {/if}
 </div>
