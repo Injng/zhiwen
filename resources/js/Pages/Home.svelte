@@ -532,7 +532,7 @@
                     <div class="p-4 h-full" bind:this={transcription}>
                         {#if ocrText}
                             <h3 class="text-sm font-medium text-gray-500 mb-1">OCR Result:</h3>
-                            <p class="text-lg text-gray-800 select-all">{ocrText}</p>
+                            <p class="text-lg text-gray-800">{ocrText}</p>
                         {:else}
                             <p class="text-gray-400 h-full flex items-center justify-center">
                                 Capture a section of the video to extract text 你
