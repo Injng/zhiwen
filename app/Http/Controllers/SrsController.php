@@ -99,7 +99,7 @@ class SrsController extends Controller
      */
     public function findCardByEntry(int $entryId): JsonResponse
     {
-        $card = Card::where('entry_id', $entryId)->first();
+        $card = Card::where('entry_id', $entryId)->get();
         return response()->json($card);
     }
 }
