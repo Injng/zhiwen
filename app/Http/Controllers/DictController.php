@@ -15,9 +15,15 @@ class DictController extends Controller
      * @param string $word The word to get dictionary entries for.
      * @return JsonResponse
      */
-    public function getEntry(string $word): JsonResponse
+    public function getEntries(string $word): JsonResponse
     {
         $entry = Entry::where('word', $word)->get();
+        return response()->json($entry);
+    }
+
+    public function getEntry(int $entryId): JsonResponse
+    {
+        $entry = Entry::find($entryId);
         return response()->json($entry);
     }
 

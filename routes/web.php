@@ -14,7 +14,8 @@ Route::post("/definitions/new", [DictController::class, "addDefinition"]);
 Route::post("/entries/new", [DictController::class, "addEntry"]);
 
 // GET API for dictionary
-Route::get("/entry/{word}", [DictController::class, "getEntry"]);
+Route::get("/entries/{word}", [DictController::class, "getEntries"]);
+Route::get("/entry/{entryId}", [DictController::class, "getEntry"]);
 Route::get("/definitions/{entryId}", [DictController::class, "getDefinitions"]);
 Route::get("/examples/{definitionId}", [DictController::class, "getExamples"]);
 
