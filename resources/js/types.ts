@@ -25,3 +25,24 @@ export type Entry = {
     pinyin: string;
     definitions: Definition[];
 };
+
+export type Review = {
+    id: number;
+    entry_id: number;
+    due: Date;
+    stability: number;
+    difficulty: number;
+    elapsed_days: number;
+    scheduled_days: number;
+    reps: number;
+    lapses: number;
+    state: string;
+    last_review: Date;
+}
+
+export interface Queue {
+    enqueue: (item: any) => void;
+    dequeue: () => any | undefined;
+    isEmpty: () => boolean;
+    size: () => number;
+}
