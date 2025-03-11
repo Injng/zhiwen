@@ -10,13 +10,18 @@ use Illuminate\Http\Request;
 class SrsController extends Controller
 {
     /**
-     * Returns cards that are due for review now.
+     * Returns the next card that is due for review, sorted by priority.
      * @return JsonResponse
      */
-    public function getDueCards(): JsonResponse
+    public function getDueCard(): JsonResponse
     {
-        $cards = Card::where('due', '<=', now()->toDateString())->get();
-        return response()->json($cards);
+        $card = Card::where('due', '<=', now()->toDateString())
+            ->orderBy('stability')  // Lower stability first (cards most likely to be forgotten)
+            ->orderBy('difficulty', 'desc') // Higher difficulty first
+            ->orderBy('created_at')  // Older cards first
+            ->first();
+
+        return response()->json($card);
     }
 
     /**

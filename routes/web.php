@@ -22,5 +22,5 @@ Route::get("/examples/{definitionId}", [DictController::class, "getExamples"]);
 // API for spaced repetition system
 Route::get("/cards/find/entry/{entryId}", [SrsController::class, "findCardByEntry"]);
 Route::post("/cards/new", [SrsController::class, "addCard"]);
-Route::get("/cards/due", [SrsController::class, "getDueCards"]);
+Route::get("/cards/due", [SrsController::class, "getDueCard"]);
 Route::post("/cards/{id}", [SrsController::class, "updateCard"]);
