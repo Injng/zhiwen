@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('entry_id')->constrained()->onDelete('cascade');
             $table->date('due');
-            $table->integer('stability');
-            $table->integer('difficulty');
+            $table->float('stability');
+            $table->float('difficulty');
             $table->integer('elapsed_days');
             $table->integer('scheduled_days');
             $table->integer('reps');

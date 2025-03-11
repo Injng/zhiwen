@@ -16,10 +16,14 @@ class SrsController extends Controller
     public function getDueCard(): JsonResponse
     {
         $card = Card::where('due', '<=', now()->toDateString())
+            ->orderBy('due')
             ->orderBy('stability')  // Lower stability first (cards most likely to be forgotten)
             ->orderBy('difficulty', 'desc') // Higher difficulty first
-            ->orderBy('created_at')  // Older cards first
             ->first();
+
+        if (!$card) {
+            return response()->json(['message' => 'No cards are due for review.']);
+        }
 
         return response()->json($card);
     }
@@ -35,8 +39,8 @@ class SrsController extends Controller
         // validate the request
         $validated = $request->validate([
             'due' => 'required|date',
-            'stability' => 'required|integer',
-            'difficulty' => 'required|integer',
+            'stability' => 'required|numeric',
+            'difficulty' => 'required|numeric',
             'elapsed_days' => 'required|integer',
             'scheduled_days' => 'required|integer',
             'reps' => 'required|integer',
@@ -61,8 +65,8 @@ class SrsController extends Controller
         $validated = $request->validate([
             'entry_id' => 'required|integer',
             'due' => 'required|date',
-            'stability' => 'required|integer',
-            'difficulty' => 'required|integer',
+            'stability' => 'required|numeric',
+            'difficulty' => 'required|numeric',
             'elapsed_days' => 'required|integer',
             'scheduled_days' => 'required|integer',
             'reps' => 'required|integer',
