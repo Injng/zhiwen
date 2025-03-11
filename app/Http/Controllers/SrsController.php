@@ -15,7 +15,7 @@ class SrsController extends Controller
      */
     public function getDueCards(): JsonResponse
     {
-        $cards = Card::where('due', '<=', now())->get();
+        $cards = Card::where('due', '<=', now()->toDateString())->get();
         return response()->json($cards);
     }
 
