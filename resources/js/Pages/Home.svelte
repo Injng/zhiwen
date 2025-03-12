@@ -552,7 +552,7 @@
             </div>
 
             {#if showNewEntry}
-                <NewEntry {entries} {selectedText} onUpdate={getEntries} onClose={toggleNew}/>
+                <NewEntry {entries} {selectedText} {key} onUpdate={getEntries} onClose={toggleNew}/>
             {/if}
         </div>
     {:else if pageState === 2}
