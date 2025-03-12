@@ -268,12 +268,12 @@
     /**
      * Captures a frame from the current playing video and outputs a blob object.
      */
-    async function captureSelection() {
+    async function captureSelection(fromPaused=false) {
         // ensure a selection has been made
         if (!selection.isSelected || !video) return null;
 
         // if video is paused, play and set delay to ensure successful capture
-        if (video.paused) {
+        if (video.paused && !fromPaused) {
             await video.play();
             await new Promise((resolve) => setTimeout(resolve, captureDelay));
         }
@@ -357,7 +357,7 @@
         );
 
         // pause the video here
-        video.pause();
+        if (!fromPaused) video.pause();
 
         // convert to blob and pass to ocr
         const blob = dataURLToBlob(captureCanvas.toDataURL("image/png"));
@@ -513,6 +513,7 @@
                         controls
                         bind:this={video}
                         onloadedmetadata={resizeCanvas}
+                        onpause={() => captureSelection(true)}
                     >
                         <track kind="captions" src="" label="Chinese" default/>
                     </video>
