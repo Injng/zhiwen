@@ -262,12 +262,21 @@
     /** Bound to the current video element on the screen. */
     let video: HTMLVideoElement;
 
+    /** The delay to wait for the video to play before initiating capture. */
+    const captureDelay = 150;
+
     /**
      * Captures a frame from the current playing video and outputs a blob object.
      */
     async function captureSelection() {
         // ensure a selection has been made
-        if (!selection.isSelected) return null;
+        if (!selection.isSelected || !video) return null;
+
+        // if video is paused, play and set delay to ensure successful capture
+        if (video.paused) {
+            await video.play();
+            await new Promise((resolve) => setTimeout(resolve, captureDelay));
+        }
 
         // create canvas for drawing image
         const captureCanvas = document.createElement("canvas");
