@@ -3,10 +3,11 @@
     import axios from "axios";
     import {onMount} from "svelte";
 
-    let {entries, selectedText, key, onUpdate, onClose}: {
+    let {entries, selectedText, key, model, onUpdate, onClose}: {
         entries: Entry[],
         selectedText: string,
         key: string,
+        model: string,
         onUpdate: () => void,
         onClose: () => void
     } = $props();
@@ -64,7 +65,7 @@
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    model: "google/gemini-2.0-flash-lite-preview-02-05:free",
+                    model,
                     messages: [
                         {
                             role: "user",

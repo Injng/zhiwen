@@ -4,6 +4,7 @@
     import EntryCard from "../Components/EntryCard.svelte";
     import NewEntry from "../Components/NewEntry.svelte";
     import ReviewCards from "../Components/ReviewCards.svelte";
+    import Settings from "../Components/Settings.svelte";
 
     /** API key for OCR purposes. */
     let {key} = $props();
@@ -13,6 +14,14 @@
      * 1: Home, 2: Review
      */
     let pageState = $state(1);
+
+    /** State for showing the settings dialog. */
+    let showSettings = $state(false);
+
+    /** Toggles the settings dialog between open and close. */
+    function toggleSettings() {
+        showSettings = !showSettings;
+    }
 
     /** State for showing the new entry dialog. */
     let showNewEntry = $state(false);
@@ -96,6 +105,9 @@
     /** Text extracted from the image using OCR. */
     let ocrText = $state("");
 
+    /** The model to use for AI enhancements. */
+    let model = "google/gemini-2.0-flash-lite-preview-02-05:free";
+
     /**
      * Runs OCR on image by passing it to a vision-based model.
      * @param img The image to run OCR on.
@@ -115,7 +127,7 @@
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        model: "google/gemini-2.0-flash-lite-preview-02-05:free",
+                        model,
                         messages: [
                             {
                                 role: "user",
@@ -139,6 +151,7 @@
             );
 
             const data = await response.json();
+            console.log(data);
             return data.choices[0].message.content;
         } catch (error) {
             console.error("Error sending image to OpenRouter:", error);
@@ -268,7 +281,7 @@
     /**
      * Captures a frame from the current playing video and outputs a blob object.
      */
-    async function captureSelection(fromPaused=false) {
+    async function captureSelection(fromPaused: boolean) {
         // ensure a selection has been made
         if (!selection.isSelected || !video) return null;
 
@@ -441,7 +454,18 @@
             <div class="flex flex-col border-r border-gray-200 bg-white shadow-sm">
                 <!-- Dictionary Entries Section -->
                 <div class="flex-grow overflow-y-auto p-2">
-                    <h2 class="text-xl font-bold text-gray-800 px-2 py-3 mb-2 border-b border-gray-200">Dictionary</h2>
+                    <div class="flex justify-between items-center px-2 py-3 mb-2 border-b border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-800">Dictionary</h2>
+                        <button
+                                class="text-gray-500 hover:text-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full p-1"
+                                onclick={toggleSettings}
+                                aria-label="Settings"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
                     {#if entries.length > 0}
                         <div class="space-y-3">
                             {#each entries as entry (entry.id)}
@@ -479,7 +503,7 @@
                     <div class="grid grid-cols-2 gap-2">
                         <button
                             class="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            onclick={captureSelection}
+                            onclick={() => captureSelection(false)}
                         >
                             Capture
                         </button>
@@ -553,7 +577,11 @@
             </div>
 
             {#if showNewEntry}
-                <NewEntry {entries} {selectedText} {key} onUpdate={getEntries} onClose={toggleNew}/>
+                <NewEntry {entries} {selectedText} {key} {model} onUpdate={getEntries} onClose={toggleNew}/>
+            {/if}
+
+            {#if showSettings}
+                <Settings bind:model onClose={toggleSettings}/>
             {/if}
         </div>
     {:else if pageState === 2}
