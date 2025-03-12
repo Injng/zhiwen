@@ -99,7 +99,7 @@
         if (!transcription.contains(container)) return;
 
         // update selected text
-        selectedText = range.toString();
+        selectedText = range.toString().trim();
     }
 
     /** Text extracted from the image using OCR. */
