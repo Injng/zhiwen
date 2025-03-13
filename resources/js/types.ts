@@ -46,6 +46,10 @@ export type TranscriptItem = {
     text: string;
 };
 
+export type SettingValues = {
+    model: string;
+    captureOnPause: boolean;
+}
 export interface Queue {
     enqueue: (item: any) => void;
     dequeue: () => any | undefined;

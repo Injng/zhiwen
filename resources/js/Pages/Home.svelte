@@ -1,6 +1,6 @@
 <script lang="ts">
     import {onMount} from "svelte";
-    import type {CanvasSelection, Definition, Entry, Example, TranscriptItem} from "../types";
+    import type {CanvasSelection, Definition, Entry, Example, SettingValues, TranscriptItem} from "../types";
     import EntryCard from "../Components/EntryCard.svelte";
     import NewEntry from "../Components/NewEntry.svelte";
     import ReviewCards from "../Components/ReviewCards.svelte";
@@ -14,6 +14,12 @@
      * 1: Home, 2: Review
      */
     let pageState = $state(1);
+
+    /** Application settings. */
+    let settings: SettingValues = $state({
+        model: "google/gemini-2.0-flash-lite-preview-02-05:free",
+        captureOnPause: false,
+    });
 
     /** State for showing the settings dialog. */
     let showSettings = $state(false);
@@ -182,9 +188,6 @@
     /** Text extracted from the image using OCR. */
     let ocrText = $state("");
 
-    /** The model to use for AI enhancements. */
-    let model = "google/gemini-2.0-flash-lite-preview-02-05:free";
-
     /**
      * Runs OCR on image by passing it to a vision-based model.
      * @param img The image to run OCR on.
@@ -204,7 +207,7 @@
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        model,
+                        model: settings.model,
                         messages: [
                             {
                                 role: "user",
@@ -359,6 +362,9 @@
      * Captures a frame from the current playing video and outputs a blob object.
      */
     async function captureSelection(fromPaused: boolean) {
+        // disable if captureOnPause is disabled
+        if (!settings.captureOnPause && fromPaused) return;
+
         // ensure a selection has been made
         if (!selection.isSelected || !video) return null;
 
@@ -685,7 +691,7 @@
             {/if}
 
             {#if showSettings}
-                <Settings bind:model onClose={toggleSettings}/>
+                <Settings bind:settings onClose={toggleSettings}/>
             {/if}
         </div>
     {:else if pageState === 2}

@@ -1,8 +1,9 @@
 <script lang="ts">
     import {onMount} from "svelte";
+    import type {SettingValues} from "../types";
 
-    let {model = $bindable(), onClose}: {
-        model: string,
+    let {settings = $bindable(), onClose}: {
+        settings: SettingValues,
         onClose: () => void
     } = $props();
 
@@ -52,7 +53,7 @@
             <div class="relative">
                 <select
                         id="model-select"
-                        bind:value={model}
+                        bind:value={settings.model}
                         class="block w-full px-4 py-3 rounded-md border border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm"
                 >
                     {#each modelOptions as option}
@@ -62,6 +63,23 @@
             </div>
             <p class="mt-2 text-sm text-gray-500">
                 Choose the AI model for OCR and language processing
+            </p>
+        </div>
+
+        <div class="mb-6">
+            <div class="flex items-center">
+                <input
+                        id="capture-on-pause"
+                        type="checkbox"
+                        bind:checked={settings.captureOnPause}
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                >
+                <label for="capture-on-pause" class="ml-2 block text-sm font-medium text-gray-700">
+                    Auto-capture on pause
+                </label>
+            </div>
+            <p class="mt-2 text-sm text-gray-500 pl-6">
+                Automatically capture the selected area when video is paused
             </p>
         </div>
     </div>
