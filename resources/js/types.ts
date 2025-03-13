@@ -40,6 +40,12 @@ export type Review = {
     last_review: Date;
 }
 
+export type TranscriptItem = {
+    startTime: number;
+    endTime: number;
+    text: string;
+};
+
 export interface Queue {
     enqueue: (item: any) => void;
     dequeue: () => any | undefined;

@@ -1,6 +1,6 @@
 <script lang="ts">
     import {onMount} from "svelte";
-    import type {CanvasSelection, Definition, Entry, Example} from "../types";
+    import type {CanvasSelection, Definition, Entry, Example, TranscriptItem} from "../types";
     import EntryCard from "../Components/EntryCard.svelte";
     import NewEntry from "../Components/NewEntry.svelte";
     import ReviewCards from "../Components/ReviewCards.svelte";
@@ -29,6 +29,83 @@
     /** Toggles the new entry dialog between open and close. */
     function toggleNew() {
         showNewEntry = !showNewEntry;
+    }
+
+    let transcript: TranscriptItem[] = $state([]);
+    let currentTranscriptText = $state("");
+    let hasTranscript = $state(false);
+
+    /**
+     * Parses an SRT file and loads the transcript data.
+     * @param e The event object containing the file input element
+     */
+    function loadTranscript(e: Event) {
+        const target = e.target as HTMLInputElement;
+        const file = target.files?.[0];
+
+        if (!file) {
+            console.error("No file selected");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const content = e.target?.result as string;
+            transcript = parseSRT(content);
+            hasTranscript = transcript.length > 0;
+        };
+        reader.readAsText(file);
+    }
+
+    /**
+     * Parses SRT format into transcript items.
+     * @param srtContent The SRT content as string
+     */
+    function parseSRT(srtContent: string): TranscriptItem[] {
+        const items: TranscriptItem[] = [];
+        const blocks = srtContent.trim().split(/\r?\n/);
+
+        for (const block of blocks) {
+            const times = block.match(/^(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3}) (.+)$/);
+            if (!times) continue;
+
+            const startTime = timeToSeconds(times[1]);
+            const endTime = timeToSeconds(times[2]);
+            const text = times[3];
+
+            items.push({startTime, endTime, text});
+        }
+
+        console.log(items);
+        return items;
+    }
+
+    /**
+     * Converts SRT timestamp to seconds.
+     * @param timeString The time string in format "00:00:00,000"
+     */
+    function timeToSeconds(timeString: string): number {
+        const [hours, minutes, rest] = timeString.split(':');
+        const [seconds, milliseconds] = rest.split(',');
+
+        return parseInt(hours) * 3600 +
+            parseInt(minutes) * 60 +
+            parseInt(seconds) +
+            parseInt(milliseconds) / 1000;
+    }
+
+    /**
+     * Updates the current transcript based on video time.
+     */
+    function updateTranscript() {
+        if (!video || !hasTranscript) return;
+
+        const currentTime = video.currentTime;
+        const current = transcript.find(
+            item => currentTime >= item.startTime && currentTime <= item.endTime
+        );
+
+        currentTranscriptText = current?.text || "";
     }
 
     /** Bound to the div element that contains the transcribed element. */
@@ -461,8 +538,11 @@
                                 onclick={toggleSettings}
                                 aria-label="Settings"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                 fill="currentColor">
+                                <path fill-rule="evenodd"
+                                      d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                                      clip-rule="evenodd"/>
                             </svg>
                         </button>
                     </div>
@@ -480,21 +560,41 @@
                 <!-- Controls Section -->
                 <div class="p-3 bg-gray-50 border-t border-gray-200">
                     <div class="mb-3">
-                        <label for="video-upload" class="block text-sm font-medium text-gray-700 mb-1">Video Upload</label>
-                        <div class="flex items-center">
+                        <label for="video-upload" class="block text-sm font-medium text-gray-700 mb-1">Video/Transcript
+                            Upload</label>
+                        <div class="grid grid-cols-2 gap-2 items-center">
                             <label class="cursor-pointer flex-grow">
                                 <span class="py-2 px-3 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 inline-flex items-center w-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500"
+                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                     </svg>
                                     Select Video File
                                 </span>
                                 <input
-                                    id="video-upload"
-                                    type="file"
-                                    class="hidden"
-                                    accept="video/*"
-                                    onchange={loadVideo}
+                                        id="video-upload"
+                                        type="file"
+                                        class="hidden"
+                                        accept="video/*"
+                                        onchange={loadVideo}
+                                />
+                            </label>
+                            <label class="cursor-pointer flex-grow">
+                                <span class="py-2 px-3 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 inline-flex items-center w-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                    </svg>
+                                    Select SRT File
+                                </span>
+                                <input
+                                        id="transcript-upload"
+                                        type="file"
+                                        class="hidden"
+                                        accept=".srt"
+                                        onchange={loadTranscript}
                                 />
                             </label>
                         </div>
@@ -502,26 +602,26 @@
 
                     <div class="grid grid-cols-2 gap-2">
                         <button
-                            class="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            onclick={() => captureSelection(false)}
+                                class="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                onclick={() => captureSelection(false)}
                         >
                             Capture
                         </button>
                         <button
-                            class="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            onclick={getEntries}
+                                class="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                onclick={getEntries}
                         >
                             Dictionary
                         </button>
                         <button
-                            class="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                            onclick={toggleNew}
+                                class="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                onclick={toggleNew}
                         >
                             New Entry
                         </button>
                         <button
-                            class="px-4 py-2 bg-gray-700 text-white font-medium rounded-md hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                            onclick={() => pageState = 2}
+                                class="px-4 py-2 bg-gray-700 text-white font-medium rounded-md hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                                onclick={() => pageState = 2}
                         >
                             Review
                         </button>
@@ -533,24 +633,25 @@
                 <!-- Video Player Section -->
                 <div class="relative flex-grow bg-black">
                     <video
-                        class="w-full h-full object-contain"
-                        controls
-                        bind:this={video}
-                        onloadedmetadata={resizeCanvas}
-                        onpause={() => captureSelection(true)}
+                            class="w-full h-full object-contain"
+                            controls
+                            bind:this={video}
+                            onloadedmetadata={resizeCanvas}
+                            ontimeupdate={updateTranscript}
+                            onpause={() => captureSelection(true)}
                     >
                         <track kind="captions" src="" label="Chinese" default/>
                     </video>
                     <canvas
-                        class="absolute top-0 left-0 w-full h-full pointer-events-none"
-                        bind:this={canvas}
+                            class="absolute top-0 left-0 w-full h-full pointer-events-none"
+                            bind:this={canvas}
                     ></canvas>
                     <button
-                        class="absolute top-0 left-0 w-full cursor-crosshair"
-                        style="height: calc(100% - {canvasOffset}px);"
-                        onmousedown={selectionStart}
-                        onmousemove={selectionMove}
-                        onmouseup={selectionEnd}
+                            class="absolute top-0 left-0 w-full cursor-crosshair"
+                            style="height: calc(100% - {canvasOffset}px);"
+                            onmousedown={selectionStart}
+                            onmousemove={selectionMove}
+                            onmouseup={selectionEnd}
                     ><span class="sr-only">Selection Area</span></button>
 
                     <!-- Selection info indicator -->
@@ -564,12 +665,15 @@
                 <!-- Transcription Section -->
                 <div class="h-44 bg-white border-t border-gray-300 overflow-y-auto">
                     <div class="p-4 h-full" bind:this={transcription}>
-                        {#if ocrText}
+                        {#if hasTranscript}
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Transcript:</h3>
+                            <p class="text-lg text-gray-800">{currentTranscriptText}</p>
+                        {:else if ocrText}
                             <h3 class="text-sm font-medium text-gray-500 mb-1">OCR Result:</h3>
                             <p class="text-lg text-gray-800">{ocrText}</p>
                         {:else}
                             <p class="text-gray-400 h-full flex items-center justify-center">
-                                Capture a section of the video to extract text
+                                Capture a section of the video to extract text or upload a transcript
                             </p>
                         {/if}
                     </div>
@@ -588,18 +692,20 @@
         <div class="p-6 max-w-3xl mx-auto">
             <div class="mb-4 flex items-center">
                 <button
-                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md mr-3 flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                    onclick={() => pageState = 1}
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md mr-3 flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                        onclick={() => pageState = 1}
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
                     Back
                 </button>
                 <h1 class="text-2xl font-bold text-gray-800">Review Cards</h1>
             </div>
             <div class="bg-white shadow-md rounded-lg p-6">
-                <ReviewCards />
+                <ReviewCards/>
             </div>
         </div>
     {/if}
