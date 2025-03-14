@@ -99,5 +99,26 @@
                 If there is no new text at the time, freeze the current transcript text
             </p>
         </div>
+
+        <div class="mb-6">
+            <label for="transcript-size" class="block text-sm font-medium text-gray-700 mb-2">
+                Transcript Font Size
+            </label>
+            <div class="flex items-center space-x-3">
+                <input
+                        id="transcript-size"
+                        type="range"
+                        min="10"
+                        max="64"
+                        step="1"
+                        bind:value={settings.transcriptSize}
+                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                >
+                <span class="text-sm font-medium text-gray-700">{settings.transcriptSize}px</span>
+            </div>
+            <p class="mt-2 text-sm text-gray-500">
+                Adjust the font size of the transcript text
+            </p>
+        </div>
     </div>
 </div>

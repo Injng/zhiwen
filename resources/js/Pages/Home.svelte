@@ -20,6 +20,7 @@
         model: "google/gemini-2.0-flash-lite-preview-02-05:free",
         captureOnPause: false,
         freezeTranscript: true,
+        transcriptSize: 14,
     });
 
     /** State for showing the settings dialog. */
@@ -681,13 +682,16 @@
                 <div class="h-44 bg-white border-t border-gray-300 overflow-y-auto">
                     <div class="p-4 h-full" bind:this={transcription}>
                         {#if hasTranscript}
-                            <h3 class="text-sm font-medium text-gray-500 mb-1">Transcript:</h3>
-                            <p class="text-lg text-gray-800">{currentTranscriptText}</p>
+                            <h3 class="font-medium text-sm text-gray-500 mb-1">Transcript:</h3>
+                            <p class="text-lg text-gray-800"
+                               style="font-size: {settings.transcriptSize}px;">{currentTranscriptText}</p>
                         {:else if ocrText}
-                            <h3 class="text-sm font-medium text-gray-500 mb-1">OCR Result:</h3>
-                            <p class="text-lg text-gray-800">{ocrText}</p>
+                            <h3 class="font-medium text-sm text-gray-500 mb-1">OCR Result:</h3>
+                            <p class="text-lg text-gray-800"
+                               style="font-size: {settings.transcriptSize}px;">{ocrText}</p>
                         {:else}
-                            <p class="text-gray-400 h-full flex items-center justify-center">
+                            <p class="text-gray-400 h-full flex items-center justify-center"
+                               style="font-size: {settings.transcriptSize}px;">
                                 Capture a section of the video to extract text or upload a transcript
                             </p>
                         {/if}
