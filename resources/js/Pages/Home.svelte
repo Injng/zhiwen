@@ -68,21 +68,28 @@
      * @param srtContent The SRT content as string
      */
     function parseSRT(srtContent: string): TranscriptItem[] {
+        // split transcript into blocks
         const items: TranscriptItem[] = [];
-        const blocks = srtContent.trim().split(/\r?\n/);
+        const blocks = srtContent.trim().split(/\n\s*\n/);
 
+        // iterate through the blocks
         for (const block of blocks) {
-            const times = block.match(/^(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3}) (.+)$/);
+            // split the block into the id, timestamp, and text components
+            const lines = block.split('\n');
+            if (lines.length < 3) continue;
+
+            // match the timestamp and the text
+            const times = lines[1].match(/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/);
             if (!times) continue;
 
+            // convert timestamps to seconds and text
             const startTime = timeToSeconds(times[1]);
             const endTime = timeToSeconds(times[2]);
-            const text = times[3];
+            const text = lines.slice(2).join('\n');
 
+            // add to items
             items.push({startTime, endTime, text});
         }
-
-        console.log(items);
         return items;
     }
 
@@ -687,7 +694,7 @@
             </div>
 
             {#if showNewEntry}
-                <NewEntry {entries} {selectedText} {key} {model} onUpdate={getEntries} onClose={toggleNew}/>
+                <NewEntry {entries} {selectedText} {key} model={settings.model} onUpdate={getEntries} onClose={toggleNew}/>
             {/if}
 
             {#if showSettings}
