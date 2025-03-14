@@ -19,6 +19,7 @@
     let settings: SettingValues = $state({
         model: "google/gemini-2.0-flash-lite-preview-02-05:free",
         captureOnPause: false,
+        freezeTranscript: true,
     });
 
     /** State for showing the settings dialog. */
@@ -118,7 +119,8 @@
             item => currentTime >= item.startTime && currentTime <= item.endTime
         );
 
-        currentTranscriptText = current?.text || "";
+        if (current) currentTranscriptText = current.text;
+        else if (!settings.freezeTranscript) currentTranscriptText = "";
     }
 
     /** Bound to the div element that contains the transcribed element. */
