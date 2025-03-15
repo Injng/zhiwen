@@ -137,7 +137,7 @@
     }
 
     /** Bound to the div element that contains the transcribed element. */
-    let transcription: HTMLDivElement;
+    let transcription: HTMLDivElement = $state(null);
 
     /** Text that the user has currently selected within the transcription element. */
     let selectedText = $state("");
@@ -274,7 +274,7 @@
     }
 
     /** Bound to the canvas element that the user draws on. */
-    let canvas: HTMLCanvasElement;
+    let canvas: HTMLCanvasElement = $state(null);
 
     /** The canvas drawing context. */
     let ctx: CanvasRenderingContext2D;
@@ -283,14 +283,14 @@
     const canvasOffset = 44;
 
     /** The user's selection data. */
-    let selection: CanvasSelection = {
+    let selection: CanvasSelection = $state({
         x: 0,
         y: 0,
         width: 0,
         height: 0,
         isSelecting: false,
         isSelected: false,
-    };
+    });
 
     /**
      * Handles the start of the selection on a mouse down event in the canvas.
@@ -371,7 +371,22 @@
     }
 
     /** Bound to the current video element on the screen. */
-    let video: HTMLVideoElement;
+    let video: HTMLVideoElement = $state(null);
+
+    /** The blob URL of the loaded video. */
+    let videoSrc = $state("");
+
+    /** The video element's timestamp. */
+    let videoTime = $state(0);
+
+    // update video source when it changes
+    $effect(() => {
+        // set video source and time when it changes
+        if (video && videoSrc != "") {
+            video.src = videoSrc;
+            video.currentTime = videoTime;
+        }
+    })
 
     /** The delay to wait for the video to play before initiating capture. */
     const captureDelay = 150;
@@ -523,9 +538,7 @@
         reader.onload = (e) => {
             let buffer = e.target?.result as ArrayBuffer;
             let blob = new Blob([buffer], {type: file.type});
-            let url = URL.createObjectURL(blob);
-            let video = document.querySelector("video") as HTMLVideoElement;
-            video.src = url;
+            videoSrc = URL.createObjectURL(blob);
         };
     }
 
@@ -606,7 +619,8 @@
                             </label>
                             <label class="cursor-pointer flex-grow">
                                 <span class="py-2 px-3 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 inline-flex items-center w-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none"
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500"
+                                         fill="none"
                                          viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                               d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -645,7 +659,10 @@
                         </button>
                         <button
                                 class="px-4 py-2 bg-gray-700 text-white font-medium rounded-md hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                                onclick={() => pageState = 2}
+                                onclick={() => {
+                                    pageState = 2;
+                                    videoTime = video?.currentTime;
+                                }}
                         >
                             Review
                         </button>
@@ -709,7 +726,8 @@
             </div>
 
             {#if showNewEntry}
-                <NewEntry {entries} {selectedText} {key} model={settings.model} onUpdate={getEntries} onClose={toggleNew}/>
+                <NewEntry {entries} {selectedText} {key} model={settings.model} onUpdate={getEntries}
+                          onClose={toggleNew}/>
             {/if}
 
             {#if showSettings}
