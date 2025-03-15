@@ -14,6 +14,9 @@
     /** Whether to show the answer. */
     let showAnswer = false;
 
+    /** Whether the entry has updated to show the card. */
+    let showCard = false;
+
     /** The FSRS parameters. */
     const params: FSRSParameters = generatorParameters();
 
@@ -66,6 +69,7 @@
             // update definition with examples
             definition.examples = await response.json() as Example[];
         }
+        showCard = true;
     }
 
     /**
@@ -82,6 +86,7 @@
         await axios.post(`/cards/${newReview.id}`, newReview)
             .then(() => {
                 // update the queue
+                showCard = false;
                 updateQueue();
                 showAnswer = false;
             });
@@ -103,90 +108,92 @@
         </div>
     {:else if currentEntry}
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <!-- Card header with progress info -->
-            <div class="bg-blue-50 px-6 py-4 border-b border-blue-100">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-800">Vocabulary Review</h2>
-                        <p class="text-sm text-gray-600">Card state: <span class="font-medium">{toReview.state}</span></p>
-                    </div>
-                    <div class="text-sm text-gray-500">
-                        <span class="font-medium">Reps:</span> {toReview.reps} |
-                        <span class="font-medium">Lapses:</span> {toReview.lapses}
+            {#if showCard}
+                <!-- Card header with progress info -->
+                <div class="bg-blue-50 px-6 py-4 border-b border-blue-100">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-800">Vocabulary Review</h2>
+                            <p class="text-sm text-gray-600">Card state: <span class="font-medium">{toReview.state}</span></p>
+                        </div>
+                        <div class="text-sm text-gray-500">
+                            <span class="font-medium">Reps:</span> {toReview.reps} |
+                            <span class="font-medium">Lapses:</span> {toReview.lapses}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Card content -->
-            <div class="p-6">
-                {#if !showAnswer}
-                    <!-- Front of card (question) -->
-                    <div class="text-center py-10">
-                        <h2 class="text-4xl font-bold text-gray-800 mb-6">{currentEntry.word}</h2>
-                        <button
-                            class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            onclick={() => showAnswer = true}
-                        >
-                            Show Answer
-                        </button>
-                    </div>
-                {:else}
-                    <!-- Back of card (answer) -->
-                    <div class="mb-8">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-3xl font-bold text-gray-800">{currentEntry.word}</h2>
-                            <div class="text-xl text-gray-600 font-medium">{currentEntry.pinyin}</div>
+                <!-- Card content -->
+                <div class="p-6">
+                    {#if !showAnswer}
+                        <!-- Front of card (question) -->
+                        <div class="text-center py-10">
+                            <h2 class="text-4xl font-bold text-gray-800 mb-6">{currentEntry.word}</h2>
+                            <button
+                                class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                onclick={() => showAnswer = true}
+                            >
+                                Show Answer
+                            </button>
+                        </div>
+                    {:else}
+                        <!-- Back of card (answer) -->
+                        <div class="mb-8">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-3xl font-bold text-gray-800">{currentEntry.word}</h2>
+                                <div class="text-xl text-gray-600 font-medium">{currentEntry.pinyin}</div>
+                            </div>
+
+                            {#if currentEntry.definitions && currentEntry.definitions.length > 0}
+                                <div class="space-y-4 mt-5">
+                                    {#each currentEntry.definitions as definition (definition.id)}
+                                        <div class="p-3 border-l-4 border-blue-400 bg-blue-50 rounded-r-md">
+                                            <div class="font-semibold text-gray-800">{definition.part}</div>
+                                            <div class="pl-2 text-gray-700 my-2">{definition.definition}</div>
+
+                                            {#if definition.examples && definition.examples.length > 0}
+                                                <div class="mt-2 pl-4 space-y-2">
+                                                    {#each definition.examples as example (example.id)}
+                                                        <div class="text-sm text-gray-700">• {example.sentence}</div>
+                                                    {/each}
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    {/each}
+                                </div>
+                            {/if}
                         </div>
 
-                        {#if currentEntry.definitions && currentEntry.definitions.length > 0}
-                            <div class="space-y-4 mt-5">
-                                {#each currentEntry.definitions as definition (definition.id)}
-                                    <div class="p-3 border-l-4 border-blue-400 bg-blue-50 rounded-r-md">
-                                        <div class="font-semibold text-gray-800">{definition.part}</div>
-                                        <div class="pl-2 text-gray-700 my-2">{definition.definition}</div>
-
-                                        {#if definition.examples && definition.examples.length > 0}
-                                            <div class="mt-2 pl-4 space-y-2">
-                                                {#each definition.examples as example (example.id)}
-                                                    <div class="text-sm text-gray-700">• {example.sentence}</div>
-                                                {/each}
-                                            </div>
-                                        {/if}
-                                    </div>
-                                {/each}
-                            </div>
-                        {/if}
-                    </div>
-
-                    <!-- Rating buttons -->
-                    <div class="grid grid-cols-4 gap-3 mt-6">
-                        <button
-                            class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex flex-col items-center"
-                            onclick={() => rateCard(Rating.Again)}
-                        >
-                            <span class="text-lg font-bold">Again</span>
-                        </button>
-                        <button
-                            class="px-4 py-3 bg-orange-400 hover:bg-orange-500 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 flex flex-col items-center"
-                            onclick={() => rateCard(Rating.Hard)}
-                        >
-                            <span class="text-lg font-bold">Hard</span>
-                        </button>
-                        <button
-                            class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex flex-col items-center"
-                            onclick={() => rateCard(Rating.Good)}
-                        >
-                            <span class="text-lg font-bold">Good</span>
-                        </button>
-                        <button
-                            class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex flex-col items-center"
-                            onclick={() => rateCard(Rating.Easy)}
-                        >
-                            <span class="text-lg font-bold">Easy</span>
-                        </button>
-                    </div>
-                {/if}
-            </div>
+                        <!-- Rating buttons -->
+                        <div class="grid grid-cols-4 gap-3 mt-6">
+                            <button
+                                class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex flex-col items-center"
+                                onclick={() => rateCard(Rating.Again)}
+                            >
+                                <span class="text-lg font-bold">Again</span>
+                            </button>
+                            <button
+                                class="px-4 py-3 bg-orange-400 hover:bg-orange-500 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 flex flex-col items-center"
+                                onclick={() => rateCard(Rating.Hard)}
+                            >
+                                <span class="text-lg font-bold">Hard</span>
+                            </button>
+                            <button
+                                class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex flex-col items-center"
+                                onclick={() => rateCard(Rating.Good)}
+                            >
+                                <span class="text-lg font-bold">Good</span>
+                            </button>
+                            <button
+                                class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex flex-col items-center"
+                                onclick={() => rateCard(Rating.Easy)}
+                            >
+                                <span class="text-lg font-bold">Easy</span>
+                            </button>
+                        </div>
+                    {/if}
+                </div>
+            {/if}
         </div>
     {:else}
         <div class="bg-white p-8 rounded-lg shadow-md text-center">
