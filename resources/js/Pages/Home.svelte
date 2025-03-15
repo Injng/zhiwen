@@ -197,11 +197,7 @@
         const selection = window.getSelection();
         if (!selection || selection.rangeCount === 0) return;
         if (!transcription) return;
-
-        // ensure that selection is within the transcription element
         const range = selection.getRangeAt(0);
-        const container = range.commonAncestorContainer;
-        if (!transcription.contains(container)) return;
 
         // update selected text
         selectedText = range.toString().trim();
