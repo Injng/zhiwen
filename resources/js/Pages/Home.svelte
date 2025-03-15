@@ -20,7 +20,7 @@
         model: "google/gemini-2.0-flash-lite-preview-02-05:free",
         captureOnPause: false,
         freezeTranscript: true,
-        transcriptSize: 14,
+        transcriptSize: 24,
     });
 
     /** State for showing the settings dialog. */
@@ -40,6 +40,7 @@
     }
 
     let transcript: TranscriptItem[] = $state([]);
+    let previousTranscriptText = $state("");
     let currentTranscriptText = $state("");
     let hasTranscript = $state(false);
 
@@ -113,15 +114,26 @@
      * Updates the current transcript based on video time.
      */
     function updateTranscript() {
+        // check if video and transcript are available
         if (!video || !hasTranscript) return;
 
+        // get current time and find the current transcript item
         const currentTime = video.currentTime;
         const current = transcript.find(
             item => currentTime >= item.startTime && currentTime <= item.endTime
         );
 
-        if (current) currentTranscriptText = current.text;
-        else if (!settings.freezeTranscript) currentTranscriptText = "";
+        // if the current transcript text is already equal to the current text, return
+        if (current && current.text === currentTranscriptText) return;
+
+        // otherwise, update the current and previous transcript text
+        if (current) {
+            previousTranscriptText = currentTranscriptText;
+            currentTranscriptText = current.text;
+        } else if (!settings.freezeTranscript) {
+            previousTranscriptText = currentTranscriptText;
+            currentTranscriptText = "";
+        }
     }
 
     /** Bound to the div element that contains the transcribed element. */
@@ -683,6 +695,7 @@
                     <div class="p-4 h-full" bind:this={transcription}>
                         {#if hasTranscript}
                             <h3 class="font-medium text-sm text-gray-500 mb-1">Transcript:</h3>
+                            <p class="text-lg text-gray-800">{previousTranscriptText}</p>
                             <p class="text-lg text-gray-800"
                                style="font-size: {settings.transcriptSize}px;">{currentTranscriptText}</p>
                         {:else if ocrText}
