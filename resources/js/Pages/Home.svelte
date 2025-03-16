@@ -546,6 +546,10 @@
      * @param e The keyboard event that triggered the keybind.
      */
     function handleKeybinds(e: KeyboardEvent) {
+        // skip if any modifier keys are pressed to prevent interfering with browser shortcuts
+        if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+
+        // handle keybinds
         if (e.code == "Space") {
             if (video.paused) video.play();
             else video.pause();
