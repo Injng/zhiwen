@@ -139,6 +139,9 @@
     /** Bound to the div element that contains the transcribed element. */
     let transcription: HTMLDivElement = $state(null);
 
+    /** Bound to the div element that contains the dictionary entries. */
+    let dictionary: HTMLDivElement = $state(null);
+
     /** Text that the user has currently selected within the transcription element. */
     let selectedText = $state("");
 
@@ -197,7 +200,11 @@
         const selection = window.getSelection();
         if (!selection || selection.rangeCount === 0) return;
         if (!transcription) return;
+
+        // ensure that selection is within the transcription or dictionary element
         const range = selection.getRangeAt(0);
+        const container = range.commonAncestorContainer;
+        if (!transcription.contains(container) && !dictionary.contains(container)) return;
 
         // update selected text
         selectedText = range.toString().trim();
@@ -610,7 +617,7 @@
         <div class="grid grid-cols-1 md:grid-cols-[1fr_3fr] h-screen">
             <div class="flex flex-col border-r border-gray-200 bg-white shadow-sm">
                 <!-- Dictionary Entries Section -->
-                <div class="flex-grow overflow-y-auto p-2">
+                <div class="flex-grow overflow-y-auto p-2" bind:this={dictionary}>
                     <div class="flex justify-between items-center px-2 py-3 mb-2 border-b border-gray-200">
                         <h2 class="text-xl font-bold text-gray-800">Dictionary</h2>
                         <button
