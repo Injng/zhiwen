@@ -546,24 +546,36 @@
      * @param e The keyboard event that triggered the keybind.
      */
     function handleKeybinds(e: KeyboardEvent) {
-        // skip if any modifier keys are pressed to prevent interfering with browser shortcuts
+        // Skip if any modifier keys are pressed to prevent interfering with browser shortcuts
         if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
 
-        // handle keybinds
-        if (e.code == "Space") {
+        // Skip if not on the home screen or if a dialog is open
+        if (showNewEntry || showSettings || pageState !== 1) return;
+
+        // Skip if the event target is an input, textarea, or other form element
+        const target = e.target as HTMLElement;
+        if (target.tagName === 'INPUT' ||
+            target.tagName === 'TEXTAREA' ||
+            target.tagName === 'SELECT' ||
+            target.isContentEditable) {
+            return;
+        }
+
+        // Handle keybinds
+        if (e.code === "Space") {
             if (video.paused) video.play();
             else video.pause();
             e.preventDefault();
-        } else if (e.code == "KeyC") {
+        } else if (e.code === "KeyC") {
             captureSelection(false);
             e.preventDefault();
-        } else if (e.code == "KeyD") {
+        } else if (e.code === "KeyD") {
             getEntries();
             e.preventDefault();
-        } else if (e.code == "KeyN") {
+        } else if (e.code === "KeyN") {
             toggleNew();
             e.preventDefault();
-        } else if (e.code == "KeyR") {
+        } else if (e.code === "KeyR") {
             pageState = 2;
             videoTime = video?.currentTime;
             e.preventDefault();
