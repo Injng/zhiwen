@@ -249,7 +249,6 @@
             );
 
             const data = await response.json();
-            console.log(data);
             return data.choices[0].message.content;
         } catch (error) {
             console.error("Error sending image to OpenRouter:", error);
@@ -542,6 +541,31 @@
         };
     }
 
+    /**
+     * Handles keybinds for the application in order to enable fast navigation.
+     * @param e The keyboard event that triggered the keybind.
+     */
+    function handleKeybinds(e: KeyboardEvent) {
+        if (e.code == "Space") {
+            if (video.paused) video.play();
+            else video.pause();
+            e.preventDefault();
+        } else if (e.code == "KeyC") {
+            captureSelection(false);
+            e.preventDefault();
+        } else if (e.code == "KeyD") {
+            getEntries();
+            e.preventDefault();
+        } else if (e.code == "KeyN") {
+            toggleNew();
+            e.preventDefault();
+        } else if (e.code == "KeyR") {
+            pageState = 2;
+            videoTime = video?.currentTime;
+            e.preventDefault();
+        }
+    }
+
     onMount(() => {
         // initialize canvas
         ctx = canvas.getContext("2d");
@@ -550,6 +574,9 @@
 
         // add event listener to track text selection
         document.addEventListener("selectionchange", handleSelectionChange);
+
+        // add event listener to handle keybinds
+        document.addEventListener("keydown", handleKeybinds);
 
         // cleanup
         return () => {
@@ -642,18 +669,21 @@
                         <button
                                 class="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                 onclick={() => captureSelection(false)}
+                                title="c"
                         >
                             Capture
                         </button>
                         <button
                                 class="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                 onclick={getEntries}
+                                title="d"
                         >
                             Dictionary
                         </button>
                         <button
                                 class="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                                 onclick={toggleNew}
+                                title="n"
                         >
                             New Entry
                         </button>
@@ -663,6 +693,7 @@
                                     pageState = 2;
                                     videoTime = video?.currentTime;
                                 }}
+                                title="r"
                         >
                             Review
                         </button>
