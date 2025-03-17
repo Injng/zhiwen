@@ -553,13 +553,13 @@
      * @param e The keyboard event that triggered the keybind.
      */
     function handleKeybinds(e: KeyboardEvent) {
-        // Skip if any modifier keys are pressed to prevent interfering with browser shortcuts
+        // skip if any modifier keys are pressed to prevent interfering with browser shortcuts
         if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
 
-        // Skip if not on the home screen or if a dialog is open
+        // skip if not on the home screen or if a dialog is open
         if (showNewEntry || showSettings || pageState !== 1) return;
 
-        // Skip if the event target is an input, textarea, or other form element
+        // skip if the event target is an input, textarea, or other form element
         const target = e.target as HTMLElement;
         if (target.tagName === 'INPUT' ||
             target.tagName === 'TEXTAREA' ||
@@ -568,21 +568,43 @@
             return;
         }
 
-        // Handle keybinds
+        // toggle pause on video
         if (e.code === "Space") {
             if (video.paused) video.play();
             else video.pause();
             e.preventDefault();
-        } else if (e.code === "KeyC") {
+        }
+
+        // seek forward
+        else if (e.code === "ArrowRight") {
+            video.currentTime += 5;
+        }
+
+        // seek backward
+        else if (e.code === "ArrowLeft") {
+            video.currentTime -= 5;
+        }
+
+        // capture the selected area
+        else if (e.code === "KeyC") {
             captureSelection(false);
             e.preventDefault();
-        } else if (e.code === "KeyD") {
+        }
+
+        // get entries from dictionary
+        else if (e.code === "KeyD") {
             getEntries();
             e.preventDefault();
-        } else if (e.code === "KeyN") {
+        }
+
+        // toggle the new entry dialog
+        else if (e.code === "KeyN") {
             toggleNew();
             e.preventDefault();
-        } else if (e.code === "KeyR") {
+        }
+
+        // go to the review page
+        else if (e.code === "KeyR") {
             pageState = 2;
             videoTime = video?.currentTime;
             e.preventDefault();
