@@ -1,7 +1,7 @@
 <script lang="ts">
     import type {Entry, Review} from "../types";
     import type {Card} from "ts-fsrs";
-    import {createEmptyCard, fsrs, generatorParameters, State} from "ts-fsrs";
+    import {createEmptyCard, fsrs, generatorParameters} from "ts-fsrs";
     import {stateToString} from "../srs";
     import axios from "axios";
 
@@ -16,6 +16,7 @@
     /** Values to submit a new card. */
     let cardValues: Review = {
         id: null,
+        type: "word",
         entry_id: entry.id,
         due: new Date(),
         stability: 0.0,
@@ -37,6 +38,7 @@
 
         // map values in card to cardValues
         cardValues.entry_id = entry.id;
+        cardValues.type = "word";
         cardValues.due = card.due;
         cardValues.stability = card.stability;
         cardValues.difficulty = card.difficulty;
@@ -47,7 +49,15 @@
         cardValues.state = stateToString(card.state);
         cardValues.last_review = card.last_review;
 
-        // add card to the database
+        // add word card to the database
+        await axios.post("/cards/new", cardValues)
+            .then(() => {
+                // update state for existing card
+                exists();
+            });
+
+        // also add cloze card to the database
+        cardValues.type = "cloze";
         await axios.post("/cards/new", cardValues)
             .then(() => {
                 // update state for existing card
@@ -65,7 +75,6 @@
         // check if a card exists in the database and update state
         await axios.get(`/cards/find/entry/${entry.id}`)
             .then((response) => {
-                const data = response.data as Review[];
                 cardExists = response.data.length != 0;
             });
     }

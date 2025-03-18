@@ -29,6 +29,7 @@ export type Entry = {
 export type Review = {
     id: number;
     entry_id: number;
+    type: string;
     due: Date;
     stability: number;
     difficulty: number;

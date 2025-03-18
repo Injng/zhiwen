@@ -125,72 +125,172 @@
 
                 <!-- Card content -->
                 <div class="p-6">
-                    {#if !showAnswer}
-                        <!-- Front of card (question) -->
-                        <div class="text-center py-10">
-                            <h2 class="text-4xl font-bold text-gray-800 mb-6">{currentEntry.word}</h2>
-                            <button
-                                class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                onclick={() => showAnswer = true}
-                            >
-                                Show Answer
-                            </button>
-                        </div>
-                    {:else}
-                        <!-- Back of card (answer) -->
-                        <div class="mb-8">
-                            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-3xl font-bold text-gray-800">{currentEntry.word}</h2>
-                                <div class="text-xl text-gray-600 font-medium">{currentEntry.pinyin}</div>
+                    {#if toReview.type === "word"}
+                        <!-- Word Card -->
+                        {#if !showAnswer}
+                            <!-- Front of card (question) -->
+                            <div class="text-center py-10">
+                                <h2 class="text-4xl font-bold text-gray-800 mb-6">{currentEntry.word}</h2>
+                                <button
+                                    class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    onclick={() => showAnswer = true}
+                                >
+                                    Show Answer
+                                </button>
+                            </div>
+                        {:else}
+                            <!-- Back of card (answer) -->
+                            <div class="mb-8">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h2 class="text-3xl font-bold text-gray-800">{currentEntry.word}</h2>
+                                    <div class="text-xl text-gray-600 font-medium">{currentEntry.pinyin}</div>
+                                </div>
+
+                                {#if currentEntry.definitions && currentEntry.definitions.length > 0}
+                                    <div class="space-y-4 mt-5">
+                                        {#each currentEntry.definitions as definition (definition.id)}
+                                            <div class="p-3 border-l-4 border-blue-400 bg-blue-50 rounded-r-md">
+                                                <div class="font-semibold text-gray-800">{definition.part}</div>
+                                                <div class="pl-2 text-gray-700 my-2">{definition.definition}</div>
+
+                                                {#if definition.examples && definition.examples.length > 0}
+                                                    <div class="mt-2 pl-4 space-y-2">
+                                                        {#each definition.examples as example (example.id)}
+                                                            <div class="text-sm text-gray-700">• {example.sentence}</div>
+                                                        {/each}
+                                                    </div>
+                                                {/if}
+                                            </div>
+                                        {/each}
+                                    </div>
+                                {/if}
                             </div>
 
-                            {#if currentEntry.definitions && currentEntry.definitions.length > 0}
-                                <div class="space-y-4 mt-5">
-                                    {#each currentEntry.definitions as definition (definition.id)}
-                                        <div class="p-3 border-l-4 border-blue-400 bg-blue-50 rounded-r-md">
-                                            <div class="font-semibold text-gray-800">{definition.part}</div>
-                                            <div class="pl-2 text-gray-700 my-2">{definition.definition}</div>
+                            <!-- Rating buttons -->
+                            <div class="grid grid-cols-4 gap-3 mt-6">
+                                <button
+                                    class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex flex-col items-center"
+                                    onclick={() => rateCard(Rating.Again)}
+                                >
+                                    <span class="text-lg font-bold">Again</span>
+                                </button>
+                                <button
+                                    class="px-4 py-3 bg-orange-400 hover:bg-orange-500 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 flex flex-col items-center"
+                                    onclick={() => rateCard(Rating.Hard)}
+                                >
+                                    <span class="text-lg font-bold">Hard</span>
+                                </button>
+                                <button
+                                    class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex flex-col items-center"
+                                    onclick={() => rateCard(Rating.Good)}
+                                >
+                                    <span class="text-lg font-bold">Good</span>
+                                </button>
+                                <button
+                                    class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex flex-col items-center"
+                                    onclick={() => rateCard(Rating.Easy)}
+                                >
+                                    <span class="text-lg font-bold">Easy</span>
+                                </button>
+                            </div>
+                        {/if}
+                    {:else}
+                        <!-- Cloze Card -->
+                        {#if !showAnswer}
+                            <!-- Front of card (question) -->
+                            <div class="py-8">
+                                {#if currentEntry.definitions && currentEntry.definitions.some(def => def.examples && def.examples.length > 0)}
+                                    {#key currentEntry.id}
+                                        {@const allExamples = currentEntry.definitions.flatMap(def => def.examples || [])}
+                                        {@const randomExample = allExamples[Math.floor(Math.random() * allExamples.length)]}
+                                        {@const clozeText = randomExample?.sentence.includes('~')
+                                            ? randomExample.sentence.replace('~', '<span class="px-4 py-1 mx-1 border-b-2 border-blue-500 inline-block min-w-[4rem] bg-blue-50 rounded">_____</span>')
+                                            : randomExample?.sentence.replace(currentEntry.word, '<span class="px-4 py-1 mx-1 border-b-2 border-blue-500 inline-block min-w-[4rem] bg-blue-50 rounded">_____</span>')}
 
-                                            {#if definition.examples && definition.examples.length > 0}
-                                                <div class="mt-2 pl-4 space-y-2">
-                                                    {#each definition.examples as example (example.id)}
-                                                        <div class="text-sm text-gray-700">• {example.sentence}</div>
-                                                    {/each}
-                                                </div>
-                                            {/if}
+                                        <div class="mb-6">
+                                            <div class="text-base text-gray-500 mb-2 text-center">{currentEntry.pinyin}</div>
+                                            <p class="text-xl text-gray-800 leading-relaxed mb-6 text-center">
+                                                {@html clozeText}
+                                            </p>
                                         </div>
-                                    {/each}
-                                </div>
-                            {/if}
-                        </div>
+                                    {/key}
+                                {:else}
+                                    <div class="text-center text-gray-500 mb-6">No example sentences available</div>
+                                {/if}
 
-                        <!-- Rating buttons -->
-                        <div class="grid grid-cols-4 gap-3 mt-6">
-                            <button
-                                class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex flex-col items-center"
-                                onclick={() => rateCard(Rating.Again)}
-                            >
-                                <span class="text-lg font-bold">Again</span>
-                            </button>
-                            <button
-                                class="px-4 py-3 bg-orange-400 hover:bg-orange-500 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 flex flex-col items-center"
-                                onclick={() => rateCard(Rating.Hard)}
-                            >
-                                <span class="text-lg font-bold">Hard</span>
-                            </button>
-                            <button
-                                class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex flex-col items-center"
-                                onclick={() => rateCard(Rating.Good)}
-                            >
-                                <span class="text-lg font-bold">Good</span>
-                            </button>
-                            <button
-                                class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex flex-col items-center"
-                                onclick={() => rateCard(Rating.Easy)}
-                            >
-                                <span class="text-lg font-bold">Easy</span>
-                            </button>
-                        </div>
+                                <div class="text-center">
+                                    <button
+                                            class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                            onclick={() => showAnswer = true}
+                                    >
+                                        Show Answer
+                                    </button>
+                                </div>
+                            </div>
+                        {:else}
+                            <!-- Back of card (answer) -->
+                            <div class="mb-8">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h2 class="text-3xl font-bold text-gray-800">{currentEntry.word}</h2>
+                                    <div class="text-xl text-gray-600 font-medium">{currentEntry.pinyin}</div>
+                                </div>
+
+                                {#if currentEntry.definitions && currentEntry.definitions.some(def => def.examples && def.examples.length > 0)}
+                                    {#key currentEntry.id}
+                                        {@const allExamples = currentEntry.definitions.flatMap(def => def.examples || [])}
+                                        {@const randomExample = allExamples[Math.floor(Math.random() * allExamples.length)]}
+                                        {@const highlightedText = randomExample?.sentence.includes('~')
+                                            ? randomExample.sentence.replace('~', `<span class="text-blue-600 font-bold bg-blue-50 px-1 rounded">${currentEntry.word}</span>`)
+                                            : randomExample?.sentence.replace(currentEntry.word, `<span class="text-blue-600 font-bold bg-blue-50 px-1 rounded">${currentEntry.word}</span>`)}
+
+                                        <div class="py-3 px-4 bg-blue-50 rounded-md mb-4">
+                                            <p class="text-lg text-gray-800">
+                                                {@html highlightedText}
+                                            </p>
+                                        </div>
+                                    {/key}
+                                {/if}
+
+                                {#if currentEntry.definitions && currentEntry.definitions.length > 0}
+                                    <div class="space-y-4 mt-5">
+                                        {#each currentEntry.definitions as definition (definition.id)}
+                                            <div class="p-3 border-l-4 border-blue-400 bg-blue-50 rounded-r-md">
+                                                <div class="font-semibold text-gray-800">{definition.part}</div>
+                                                <div class="pl-2 text-gray-700 my-2">{definition.definition}</div>
+                                            </div>
+                                        {/each}
+                                    </div>
+                                {/if}
+                            </div>
+
+                            <!-- Rating buttons -->
+                            <div class="grid grid-cols-4 gap-3 mt-6">
+                                <button
+                                        class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex flex-col items-center"
+                                        onclick={() => rateCard(Rating.Again)}
+                                >
+                                    <span class="text-lg font-bold">Again</span>
+                                </button>
+                                <button
+                                        class="px-4 py-3 bg-orange-400 hover:bg-orange-500 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 flex flex-col items-center"
+                                        onclick={() => rateCard(Rating.Hard)}
+                                >
+                                    <span class="text-lg font-bold">Hard</span>
+                                </button>
+                                <button
+                                        class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex flex-col items-center"
+                                        onclick={() => rateCard(Rating.Good)}
+                                >
+                                    <span class="text-lg font-bold">Good</span>
+                                </button>
+                                <button
+                                        class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex flex-col items-center"
+                                        onclick={() => rateCard(Rating.Easy)}
+                                >
+                                    <span class="text-lg font-bold">Easy</span>
+                                </button>
+                            </div>
+                        {/if}
                     {/if}
                 </div>
             {/if}
