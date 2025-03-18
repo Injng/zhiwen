@@ -32,6 +32,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Card whereScheduledDays($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Card whereStability($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Card whereState($value)
+ * @property string $type
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Card whereType($value)
  * @mixin \Eloquent
  */
 class Card extends Model

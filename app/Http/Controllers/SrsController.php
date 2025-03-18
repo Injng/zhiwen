@@ -64,6 +64,7 @@ class SrsController extends Controller
         // validate the request
         $validated = $request->validate([
             'entry_id' => 'required|integer',
+            'type' => 'required|in:word,cloze',
             'due' => 'required|date',
             'stability' => 'required|numeric',
             'difficulty' => 'required|numeric',
@@ -78,6 +79,7 @@ class SrsController extends Controller
         // insert the card into the database
         $card = new Card();
         $card->entry_id = $validated['entry_id'];
+        $card->type = $validated['type'];
         return $this->saveCard($validated, $card);
     }
 

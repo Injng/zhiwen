@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('cards', function (Blueprint $table) {
             $table->id();
             $table->foreignId('entry_id')->constrained()->onDelete('cascade');
+            $table->enum('type', ['word', 'cloze'])->default('word');
             $table->date('due');
             $table->float('stability');
             $table->float('difficulty');
