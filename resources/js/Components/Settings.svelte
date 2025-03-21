@@ -88,6 +88,23 @@
                 <input
                         id="capture-on-pause"
                         type="checkbox"
+                        bind:checked={settings.showBaidu}
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                >
+                <label for="capture-on-pause" class="ml-2 block text-sm font-medium text-gray-700">
+                    Show Baidu Dictionary
+                </label>
+            </div>
+            <p class="mt-2 text-sm text-gray-500 pl-6">
+                Show a reference entry from Baidu Hanyu for the selected text
+            </p>
+        </div>
+
+        <div class="mb-6">
+            <div class="flex items-center">
+                <input
+                        id="capture-on-pause"
+                        type="checkbox"
                         bind:checked={settings.freezeTranscript}
                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 >

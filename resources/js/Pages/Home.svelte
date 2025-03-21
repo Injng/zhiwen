@@ -21,6 +21,7 @@
         captureOnPause: false,
         freezeTranscript: true,
         transcriptSize: 24,
+        showBaidu: false,
     });
 
     /** State for showing the settings dialog. */
@@ -794,7 +795,7 @@
                         {:else}
                             <p class="text-gray-400 h-full flex items-center justify-center"
                                style="font-size: {settings.transcriptSize}px;">
-                                Capture a section of the video to extract text or upload a transcript
+                                Capture a section of the video to extract text or upload a transcript 新官上任三把火
                             </p>
                         {/if}
                     </div>
@@ -802,7 +803,8 @@
             </div>
 
             {#if showNewEntry}
-                <NewEntry {entries} {selectedText} {key} model={settings.model} onUpdate={getEntries}
+                <NewEntry {entries} {selectedText} {key} model={settings.model} showBaidu={settings.showBaidu}
+                          onUpdate={getEntries}
                           onClose={toggleNew}/>
             {/if}
 

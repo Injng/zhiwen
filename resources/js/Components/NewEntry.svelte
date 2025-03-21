@@ -3,11 +3,12 @@
     import axios from "axios";
     import {onMount} from "svelte";
 
-    let {entries, selectedText, key, model, onUpdate, onClose}: {
+    let {entries, selectedText, key, model, showBaidu, onUpdate, onClose}: {
         entries: Entry[],
         selectedText: string,
         key: string,
         model: string,
+        showBaidu: boolean,
         onUpdate: () => void,
         onClose: () => void
     } = $props();
@@ -141,13 +142,14 @@
 
 <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
     <div bind:this={modalContainer}
-         class="bg-white p-8 rounded-lg shadow-xl m-10 overflow-y-auto max-h-[90vh] w-full min-w-[400px]">
+         class="bg-white p-8 rounded-lg shadow-xl m-10 overflow-y-auto max-h-[90vh] {showBaidu ? 'w-full' : 'w-1/3'} min-w-[400px]">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold text-gray-800">Add New Entry</h2>
         </div>
 
         <hr class="my-4 border-gray-200"/>
-        <div class="grid grid-cols-[1fr_3fr] gap-6">
+
+        <div class="{showBaidu ? 'grid grid-cols-[1fr_3fr] gap-6' : ''}">
             <div>
                 {#each entries as entry (entry.id)}
                     <!-- Entry Header -->
@@ -188,7 +190,8 @@
                                                     class="px-3 py-2 bg-purple-500 text-white font-medium hover:bg-purple-600 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 flex items-center"
                                                     aria-label="Generate"
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20"
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
+                                                     viewBox="0 0 20 20"
                                                      fill="currentColor">
                                                     <path fill-rule="evenodd"
                                                           d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
@@ -216,7 +219,8 @@
                                             }}>
                                 <div class="space-y-3">
                                     <div>
-                                        <label for="part-{entry.id}" class="block text-sm font-medium text-gray-700">Part of
+                                        <label for="part-{entry.id}" class="block text-sm font-medium text-gray-700">Part
+                                            of
                                             Speech</label>
                                         <input class="mt-1 px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                id="part-{entry.id}"
@@ -224,7 +228,8 @@
                                                placeholder="e.g. 名 (noun), 动 (verb)"/>
                                     </div>
                                     <div>
-                                        <label for="definition-{entry.id}" class="block text-sm font-medium text-gray-700">Definition</label>
+                                        <label for="definition-{entry.id}"
+                                               class="block text-sm font-medium text-gray-700">Definition</label>
                                         <textarea
                                                 class="mt-1 px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 id="definition-{entry.id}"
@@ -278,21 +283,23 @@
                 </div>
             </div>
 
-            <!-- Baidu Hanyu for Reference -->
-            <div class="pl-4 border-l border-gray-200">
-                <h3 class="text-lg font-medium text-gray-700 mb-3">Reference Dictionary</h3>
-                <div class="h-96 rounded-lg overflow-hidden border border-gray-300 shadow-sm">
-                    <div class="relative w-full h-full overflow-hidden">
-                        <iframe
-                                src={baiduSrc}
-                                class="absolute top-0 left-0 w-[133%] h-[133%]"
-                                style="transform: scale(0.75); transform-origin: 0 0;"
-                                title="Baidu Hanyu Dictionary"
-                                loading="lazy">
-                        </iframe>
+            {#if showBaidu}
+                <!-- Baidu Hanyu for Reference -->
+                <div class="pl-4 border-l border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-700 mb-3">Reference Dictionary</h3>
+                    <div class="h-96 rounded-lg overflow-hidden border border-gray-300 shadow-sm">
+                        <div class="relative w-full h-full overflow-hidden">
+                            <iframe
+                                    src={baiduSrc}
+                                    class="absolute top-0 left-0 w-[133%] h-[133%]"
+                                    style="transform: scale(0.75); transform-origin: 0 0;"
+                                    title="Baidu Hanyu Dictionary"
+                                    loading="lazy">
+                            </iframe>
+                        </div>
                     </div>
                 </div>
-            </div>
+            {/if}
         </div>
     </div>
 </div>

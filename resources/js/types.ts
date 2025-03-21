@@ -52,6 +52,7 @@ export type SettingValues = {
     captureOnPause: boolean;
     freezeTranscript: boolean;
     transcriptSize: number;
+    showBaidu: boolean;
 }
 
 export interface Queue {
