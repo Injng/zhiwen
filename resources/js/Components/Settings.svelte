@@ -86,12 +86,12 @@
         <div class="mb-6">
             <div class="flex items-center">
                 <input
-                        id="capture-on-pause"
+                        id="show-baidu"
                         type="checkbox"
                         bind:checked={settings.showBaidu}
                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 >
-                <label for="capture-on-pause" class="ml-2 block text-sm font-medium text-gray-700">
+                <label for="show-baidu" class="ml-2 block text-sm font-medium text-gray-700">
                     Show Baidu Dictionary
                 </label>
             </div>
@@ -103,12 +103,12 @@
         <div class="mb-6">
             <div class="flex items-center">
                 <input
-                        id="capture-on-pause"
+                        id="freeze-transcript"
                         type="checkbox"
                         bind:checked={settings.freezeTranscript}
                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 >
-                <label for="capture-on-pause" class="ml-2 block text-sm font-medium text-gray-700">
+                <label for="freeze-transcript" class="ml-2 block text-sm font-medium text-gray-700">
                     Freeze transcript
                 </label>
             </div>
