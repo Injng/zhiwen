@@ -4,6 +4,7 @@
     import {fsrs, generatorParameters, Rating} from "ts-fsrs";
     import {reviewToCard, updateReview} from "../srs";
     import axios from "axios";
+    import {onMount} from "svelte";
 
     /** The current review card that is being reviewed. */
     let toReview: Review | null = null;
@@ -92,8 +93,57 @@
             });
     }
 
+    /**
+     * Handles keybinds for the review page in order to enable faster review
+     * @param e The keyboard event that triggered the keybind.
+     */
+    function handleKeybinds(e: KeyboardEvent) {
+        // skip if any modifier keys are pressed to prevent interfering with browser shortcuts
+        if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+
+        // toggle the front and back of the card
+        else if (e.code === "Space") {
+            showAnswer = !showAnswer;
+            e.preventDefault();
+        }
+
+        // rate the card as "again"
+        else if (e.code === "Digit1") {
+            if (showAnswer) rateCard(Rating.Again);
+            e.preventDefault();
+        }
+
+        // rate the card as "hard"
+        else if (e.code === "Digit2") {
+            if (showAnswer) rateCard(Rating.Hard);
+            e.preventDefault();
+        }
+
+        // rate the card as "good"
+        else if (e.code === "Digit3") {
+            if (showAnswer) rateCard(Rating.Good);
+            e.preventDefault();
+        }
+
+        // rate the card as "easy"
+        else if (e.code === "Digit4") {
+            if (showAnswer) rateCard(Rating.Easy);
+            e.preventDefault();
+        }
+    }
+
     // initialize
     updateQueue();
+
+    onMount(() => {
+        // add event listener to handle keybinds
+        document.addEventListener("keydown", handleKeybinds);
+
+        // remove event listener on component destroy
+        return () => {
+            document.removeEventListener("keydown", handleKeybinds);
+        };
+    });
 </script>
 
 <div class="w-full max-w-2xl mx-auto">
