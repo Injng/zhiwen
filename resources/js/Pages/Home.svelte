@@ -795,7 +795,7 @@
                         {:else}
                             <p class="text-gray-400 h-full flex items-center justify-center"
                                style="font-size: {settings.transcriptSize}px;">
-                                Capture a section of the video to extract text or upload a transcript 新官上任三把火
+                                Capture a section of the video to extract text or upload a transcript
                             </p>
                         {/if}
                     </div>
