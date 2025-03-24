@@ -202,6 +202,9 @@
         if (!selection || selection.rangeCount === 0) return;
         if (!transcription) return;
 
+        // if selected text is none, keep current selection
+        if (selection.toString().trim() === "") return;
+
         // ensure that selection is within the transcription or dictionary element
         const range = selection.getRangeAt(0);
         const container = range.commonAncestorContainer;
