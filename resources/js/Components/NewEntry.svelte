@@ -154,7 +154,7 @@
                 {#each entries as entry (entry.id)}
                     <!-- Entry Header -->
                     <div class="mb-4 p-3 bg-gray-50 rounded-md">
-                        <div class="text-xl font-bold text-gray-800">{entry.word}</div>
+                        <div class="text-xl font-bold text-gray-800 chinese-text">{entry.word}</div>
                         <div class="text-sm text-gray-600 italic">{entry.pinyin}</div>
                     </div>
 
@@ -163,11 +163,11 @@
                         {#if entry.definitions && entry.definitions.length > 0}
                             {#each entry.definitions as definition (definition.id)}
                                 <div class="p-3 border-l-4 border-blue-400 bg-blue-50 rounded-r-md">
-                                    <div class="font-semibold text-gray-800">{definition.part}</div>
-                                    <div class="pl-2 text-gray-700 my-2">{definition.definition}</div>
+                                    <div class="font-semibold text-gray-800 chinese-text">{definition.part}</div>
+                                    <div class="pl-2 text-gray-700 my-2 chinese-text">{definition.definition}</div>
 
                                     {#if definition.examples && definition.examples.length > 0}
-                                        <div class="mt-2 pl-4 space-y-1">
+                                        <div class="mt-2 pl-4 space-y-1 chinese-text">
                                             {#each definition.examples as example (example.id)}
                                                 <div class="text-sm text-gray-700">• {example.sentence}</div>
                                             {/each}
@@ -180,7 +180,7 @@
                                         newExample(definition.id);
                                     }}>
                                         <div class="flex">
-                                            <input class="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            <input class="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 chinese-text"
                                                    id="sentence-{definition.id}"
                                                    bind:value={exampleValues.sentence}
                                                    placeholder="Add example sentence"/>
@@ -222,7 +222,7 @@
                                         <label for="part-{entry.id}" class="block text-sm font-medium text-gray-700">Part
                                             of
                                             Speech</label>
-                                        <input class="mt-1 px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        <input class="mt-1 px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 chinese-text"
                                                id="part-{entry.id}"
                                                bind:value={definitionValues.part}
                                                placeholder="e.g. 名 (noun), 动 (verb)"/>
@@ -231,7 +231,7 @@
                                         <label for="definition-{entry.id}"
                                                class="block text-sm font-medium text-gray-700">Definition</label>
                                         <textarea
-                                                class="mt-1 px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                class="mt-1 px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 chinese-text"
                                                 id="definition-{entry.id}"
                                                 bind:value={definitionValues.definition}
                                                 rows="3"
@@ -260,7 +260,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700" for="word">Chinese Character</label>
                             <input bind:value={entryValues.word}
-                                   class="mt-1 px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   class="mt-1 px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 chinese-text"
                                    id="word"
                                    placeholder="汉字"/>
                         </div>
@@ -303,3 +303,12 @@
         </div>
     </div>
 </div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+
+    .chinese-text {
+        font-family: 'Noto Serif SC', serif;
+    }
+</style>
+

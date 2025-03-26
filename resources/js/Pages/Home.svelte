@@ -789,11 +789,11 @@
                         {#if hasTranscript}
                             <h3 class="font-medium text-sm text-gray-500 mb-1">Transcript:</h3>
                             <p class="text-lg text-gray-800">{previousTranscriptText}</p>
-                            <p class="text-lg text-gray-800"
+                            <p class="text-lg text-gray-800 chinese-text"
                                style="font-size: {settings.transcriptSize}px;">{currentTranscriptText}</p>
                         {:else if ocrText}
                             <h3 class="font-medium text-sm text-gray-500 mb-1">OCR Result:</h3>
-                            <p class="text-lg text-gray-800"
+                            <p class="text-lg text-gray-800 chinese-text"
                                style="font-size: {settings.transcriptSize}px;">{ocrText}</p>
                         {:else}
                             <p class="text-gray-400 h-full flex items-center justify-center"
@@ -837,3 +837,12 @@
         </div>
     {/if}
 </div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+
+    .chinese-text {
+        font-family: 'Noto Serif SC', serif;
+    }
+</style>
+

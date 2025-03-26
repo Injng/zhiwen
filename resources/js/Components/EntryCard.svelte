@@ -84,7 +84,7 @@
 <div class="p-4 m-2 border border-gray-300 rounded shadow-sm">
     <div class="mb-2 flex justify-between items-start">
         <div>
-            <div class="text-xl font-bold">{entry.word}</div>
+            <div class="text-xl font-bold chinese-text">{entry.word}</div>
             <div class="text-sm text-gray-600 italic">{entry.pinyin}</div>
         </div>
         <button class="w-6 h-6 flex items-center justify-center rounded-full transition-colors"
@@ -102,7 +102,7 @@
     </div>
 
     {#if entry.definitions && entry.definitions.length > 0}
-        <div class="mt-2">
+        <div class="mt-2 chinese-text">
             {#each entry.definitions as definition (definition.id)}
                 <div class="mt-2 pl-2 border-l-2 border-gray-300">
                     <div class="font-semibold">{definition.part}</div>
@@ -120,3 +120,11 @@
         </div>
     {/if}
 </div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+
+    .chinese-text {
+        font-family: 'Noto Serif SC', serif;
+    }
+</style>

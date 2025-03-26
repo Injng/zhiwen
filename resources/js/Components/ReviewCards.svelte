@@ -180,7 +180,7 @@
                         {#if !showAnswer}
                             <!-- Front of card (question) -->
                             <div class="text-center py-10">
-                                <h2 class="text-4xl font-bold text-gray-800 mb-6">{currentEntry.word}</h2>
+                                <h2 class="text-4xl font-bold text-gray-800 mb-6 chinese-text">{currentEntry.word}</h2>
                                 <button
                                     class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                     onclick={() => showAnswer = true}
@@ -192,12 +192,12 @@
                             <!-- Back of card (answer) -->
                             <div class="mb-8">
                                 <div class="flex justify-between items-center mb-4">
-                                    <h2 class="text-3xl font-bold text-gray-800">{currentEntry.word}</h2>
+                                    <h2 class="text-3xl font-bold text-gray-800 chinese-text">{currentEntry.word}</h2>
                                     <div class="text-xl text-gray-600 font-medium">{currentEntry.pinyin}</div>
                                 </div>
 
                                 {#if currentEntry.definitions && currentEntry.definitions.length > 0}
-                                    <div class="space-y-4 mt-5">
+                                    <div class="space-y-4 mt-5 chinese-text">
                                         {#each currentEntry.definitions as definition (definition.id)}
                                             <div class="p-3 border-l-4 border-blue-400 bg-blue-50 rounded-r-md">
                                                 <div class="font-semibold text-gray-800">{definition.part}</div>
@@ -259,7 +259,7 @@
 
                                         <div class="mb-6">
                                             <div class="text-base text-gray-500 mb-2 text-center">{currentEntry.pinyin}</div>
-                                            <p class="text-xl text-gray-800 leading-relaxed mb-6 text-center">
+                                            <p class="text-xl text-gray-800 leading-relaxed mb-6 text-center chinese-text">
                                                 {@html clozeText}
                                             </p>
                                         </div>
@@ -281,36 +281,38 @@
                             <!-- Back of card (answer) -->
                             <div class="mb-8">
                                 <div class="flex justify-between items-center mb-4">
-                                    <h2 class="text-3xl font-bold text-gray-800">{currentEntry.word}</h2>
+                                    <h2 class="text-3xl font-bold text-gray-800 chinese-text">{currentEntry.word}</h2>
                                     <div class="text-xl text-gray-600 font-medium">{currentEntry.pinyin}</div>
                                 </div>
 
-                                {#if currentEntry.definitions && currentEntry.definitions.some(def => def.examples && def.examples.length > 0)}
-                                    {#key currentEntry.id}
-                                        {@const allExamples = currentEntry.definitions.flatMap(def => def.examples || [])}
-                                        {@const randomExample = allExamples[Math.floor(Math.random() * allExamples.length)]}
-                                        {@const highlightedText = randomExample?.sentence.includes('~')
-                                            ? randomExample.sentence.replace('~', `<span class="text-blue-600 font-bold bg-blue-50 px-1 rounded">${currentEntry.word}</span>`)
-                                            : randomExample?.sentence.replace(currentEntry.word, `<span class="text-blue-600 font-bold bg-blue-50 px-1 rounded">${currentEntry.word}</span>`)}
+                                <div class="chinese-text">
+                                    {#if currentEntry.definitions && currentEntry.definitions.some(def => def.examples && def.examples.length > 0)}
+                                        {#key currentEntry.id}
+                                            {@const allExamples = currentEntry.definitions.flatMap(def => def.examples || [])}
+                                            {@const randomExample = allExamples[Math.floor(Math.random() * allExamples.length)]}
+                                            {@const highlightedText = randomExample?.sentence.includes('~')
+                                                ? randomExample.sentence.replace('~', `<span class="text-blue-600 font-bold bg-blue-50 px-1 rounded">${currentEntry.word}</span>`)
+                                                : randomExample?.sentence.replace(currentEntry.word, `<span class="text-blue-600 font-bold bg-blue-50 px-1 rounded">${currentEntry.word}</span>`)}
 
-                                        <div class="py-3 px-4 bg-blue-50 rounded-md mb-4">
-                                            <p class="text-lg text-gray-800">
-                                                {@html highlightedText}
-                                            </p>
-                                        </div>
-                                    {/key}
-                                {/if}
-
-                                {#if currentEntry.definitions && currentEntry.definitions.length > 0}
-                                    <div class="space-y-4 mt-5">
-                                        {#each currentEntry.definitions as definition (definition.id)}
-                                            <div class="p-3 border-l-4 border-blue-400 bg-blue-50 rounded-r-md">
-                                                <div class="font-semibold text-gray-800">{definition.part}</div>
-                                                <div class="pl-2 text-gray-700 my-2">{definition.definition}</div>
+                                            <div class="py-3 px-4 bg-blue-50 rounded-md mb-4">
+                                                <p class="text-lg text-gray-800">
+                                                    {@html highlightedText}
+                                                </p>
                                             </div>
-                                        {/each}
-                                    </div>
-                                {/if}
+                                        {/key}
+                                    {/if}
+
+                                    {#if currentEntry.definitions && currentEntry.definitions.length > 0}
+                                        <div class="space-y-4 mt-5">
+                                            {#each currentEntry.definitions as definition (definition.id)}
+                                                <div class="p-3 border-l-4 border-blue-400 bg-blue-50 rounded-r-md">
+                                                    <div class="font-semibold text-gray-800">{definition.part}</div>
+                                                    <div class="pl-2 text-gray-700 my-2">{definition.definition}</div>
+                                                </div>
+                                            {/each}
+                                        </div>
+                                    {/if}
+                                </div>
                             </div>
 
                             <!-- Rating buttons -->
@@ -355,3 +357,11 @@
         </div>
     {/if}
 </div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+
+    .chinese-text {
+        font-family: 'Noto Serif SC', serif;
+    }
+</style>
