@@ -806,7 +806,7 @@
             </div>
 
             {#if showNewEntry}
-                <NewEntry {entries} {selectedText} {key} model={settings.model} showBaidu={settings.showBaidu}
+                <NewEntry {entries} bind:selectedText {key} model={settings.model} showBaidu={settings.showBaidu}
                           onUpdate={getEntries}
                           onClose={toggleNew}/>
             {/if}
